@@ -1,20 +1,43 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+ :root {
+  --background: linear-gradient(135deg,#0b0b0d 0%, #0f1724 50%, #071023 100%);
+  --foreground: #ededed;
+  --muted: rgba(237,237,237,0.75);
+  --panel-bg: rgba(14,17,22,0.6);
+  --input-bg: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --nav-active-from: #f97316;
+  --nav-active-to: #ec4899;
+  --nav-active-text: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html[data-theme="dark"] {
+  --background: linear-gradient(135deg,#0b0b0d 0%, #0f1724 50%, #071023 100%);
+  --foreground: #ededed;
+  --muted: rgba(237,237,237,0.75);
+  --panel-bg: rgba(14,17,22,0.6);
+  --input-bg: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --nav-active-from: #f97316;
+  --nav-active-to: #ec4899;
+  --nav-active-text: #ffffff;
+}
+
+html[data-theme="light"] {
+  --background: linear-gradient(135deg,#ffffff 0%, #f8fafc 50%, #ffffff 100%);
+  --foreground: #0b1220;
+  --muted: rgba(11,18,32,0.6);
+  --panel-bg: rgba(255,255,255,0.8);
+  --input-bg: rgba(11,18,32,0.03);
+  --border: rgba(11,18,32,0.08);
+  --nav-active-from: #fb923c;
+  --nav-active-to: #f472b6;
+  --nav-active-text: #0b1220;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
+  html:not([data-theme]) {
+    --background: linear-gradient(135deg,#0b0b0d 0%, #0f1724 50%, #071023 100%);
     --foreground: #ededed;
   }
 }
@@ -23,4 +46,21 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Simple helpers for components to use theme variables */
+.theme-panel {
+  background: var(--panel-bg);
+  color: var(--foreground);
+}
+
+.theme-input {
+  background: var(--input-bg);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.nav-active-gradient {
+  background: linear-gradient(90deg,var(--nav-active-from),var(--nav-active-to));
+  color: var(--nav-active-text) !important;
 }

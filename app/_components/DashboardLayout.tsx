@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useTheme } from "./ThemeProvider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +15,8 @@ import {
   Bell,
   Menu,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { format } from "date-fns";
 import DateRangePicker from "./DateRangePicker";
@@ -57,6 +60,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
   title?: string;
 }) {
+  const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const defaultRange = {
     startDate: new Date(2026, 0, 11),
@@ -67,9 +71,9 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+    <div className="min-h-screen">
       <aside
-        className={`fixed left-0 top-0 h-full bg-slate-900/50 backdrop-blur-xl border-r border-white/10 transition-all duration-300 z-50 overflow-hidden ${
+        className={`fixed left-0 top-0 h-full theme-panel backdrop-blur-xl border-r transition-all duration-300 z-50 overflow-hidden ${
           sidebarOpen ? "w-56 translate-x-0" : "w-0 -translate-x-full"
         }`}
       >
@@ -97,12 +101,8 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <div
-        className={`transition-all duration-300 ${
-          sidebarOpen ? "ml-0 md:ml-56" : "ml-0 md:ml-0"
-        }`}
-      >
-        <header className="bg-slate-900/30 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40">
+      <div className={`transition-all duration-300 ${sidebarOpen ? "ml-0 md:ml-56" : "ml-0 md:ml-0"}`}>
+        <header className="theme-panel sticky top-0 z-40 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -126,18 +126,23 @@ export default function DashboardLayout({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--muted)' }}
                   size={16}
                 />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 w-48 text-sm"
+                  className="pl-9 pr-3 py-2 rounded-lg focus:outline-none w-48 text-sm theme-input"
+                  style={{ borderColor: 'var(--border)' }}
                 />
               </div>
-              <button className="p-2 hover:bg-white/5 rounded-lg transition-colors relative">
+              <button className="p-2 rounded-lg transition-colors relative" style={{ background: 'transparent' }}>
                 <Bell size={18} />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+              </button>
+              <button onClick={toggleTheme} title="Toggle theme" className="p-2 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center" style={{ background: 'transparent' }}>
+                {theme === 'light' ? <Sun size={18} style={{ color: 'var(--muted)' }} /> : <Moon size={18} style={{ color: 'var(--muted)' }} />}
               </button>
               <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center font-bold text-sm">
                 AA

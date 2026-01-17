@@ -76,7 +76,8 @@ export default function DateRangePicker({ value, onChange, defaultRange }: Props
       {open && (
         <div
           ref={pickerRef}
-          className="absolute left-0 mt-2 z-50 bg-slate-900/90 p-3 rounded-lg shadow-lg border border-white/10 flex"
+          className="absolute left-0 mt-2 z-50 p-3 rounded-lg shadow-lg border flex theme-panel"
+          style={{ borderColor: 'var(--border)' }}
         >
           <div className="flex flex-col mr-4 space-y-2">
             <button
@@ -161,55 +162,60 @@ export default function DateRangePicker({ value, onChange, defaultRange }: Props
       )}
 
       <style jsx global>{`
-        /* Wrapper */
+        /* Base wrapper using theme variables */
         .rdrCalendarWrapper {
-          background: rgba(15, 23, 42, 0.98) !important; /* slate-900 */
-          color: #e6eef8 !important;
+          background: var(--panel-bg) !important;
+          color: var(--foreground) !important;
           border-radius: 8px !important;
-          box-shadow: 0 10px 30px rgba(2,6,23,0.6) !important;
-          border: 1px solid rgba(255,255,255,0.06) !important;
+          box-shadow: 0 10px 30px rgba(2,6,23,0.15) !important;
+          border: 1px solid var(--border) !important;
         }
 
         /* Month block */
         .rdrMonth { background: transparent !important; }
-        .rdrMonthName, .rdrMonthAndYearPickers, .rdrWeekDays { color: #cbd5e1 !important; }
-        .rdrWeekDays th { color: #94a3b8 !important; }
+        .rdrMonthName, .rdrMonthAndYearPickers, .rdrWeekDays { color: var(--muted) !important; }
+        .rdrWeekDays th { color: rgba(0,0,0,0.35) !important; }
 
         /* Day numbers */
-        .rdrDayNumber span { color: #cbd5e1 !important; }
-        .rdrDayPassive .rdrDayNumber span { color: #475569 !important; }
+        .rdrDayNumber span { color: var(--foreground) !important; }
+        .rdrDayPassive .rdrDayNumber span { color: rgba(0,0,0,0.35) !important; }
 
         /* Today */
         .rdrDayToday .rdrDayNumber span {
-          border: 1px solid rgba(255,255,255,0.08) !important;
+          border: 1px solid var(--border) !important;
         }
 
-        /* Selected / in-range */
+        /* Selected / in-range uses nav gradient variables */
         .rdrDayInRange .rdrDayNumber span,
         .rdrDaySelected .rdrDayNumber span {
-          color: #fff !important;
+          color: var(--nav-active-text) !important;
         }
-        .rdrDayInRange { background: linear-gradient(90deg,#fb923c,#f472b6) !important; }
-        .rdrDaySelected { background: linear-gradient(90deg,#fb923c,#f472b6) !important; box-shadow: none !important; }
+        .rdrDayInRange { background: linear-gradient(90deg,var(--nav-active-from),var(--nav-active-to)) !important; }
+        .rdrDaySelected { background: linear-gradient(90deg,var(--nav-active-from),var(--nav-active-to)) !important; box-shadow: none !important; }
 
         /* Input boxes at top */
         .rdrDateDisplayWrapper, .rdrDateDisplayItem {
-          background: rgba(255,255,255,0.03) !important;
-          border: 1px solid rgba(255,255,255,0.04) !important;
-          color: #e6eef8 !important;
+          background: var(--input-bg) !important;
+          border: 1px solid var(--border) !important;
+          color: var(--foreground) !important;
         }
         .rdrDateDisplayItem input {
-          color: #e6eef8 !important;
+          color: var(--foreground) !important;
         }
 
         /* Prev/next buttons */
-        .rdrNextPrevButton { background: rgba(255,255,255,0.02) !important; color: #cbd5e1 !important; }
+        .rdrNextPrevButton { background: rgba(0,0,0,0.03) !important; color: var(--muted) !important; }
 
         /* Small helpers */
         .rdrSelectionPreview .rdrDay { opacity: 0.9 !important; }
 
         /* Responsive fix to match our picker container padding */
         .rdrMonths { gap: 18px !important; }
+
+        /* Light-specific tweaks */
+        html[data-theme="light"] .rdrWeekDays th { color: rgba(11,18,32,0.45) !important; }
+        html[data-theme="light"] .rdrDayPassive .rdrDayNumber span { color: rgba(11,18,32,0.35) !important; }
+        html[data-theme="light"] .rdrNextPrevButton { background: rgba(11,18,32,0.03) !important; }
       `}</style>
     </div>
   );
