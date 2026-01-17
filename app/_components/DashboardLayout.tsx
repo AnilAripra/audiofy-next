@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +15,8 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { format } from "date-fns";
+import DateRangePicker from "./DateRangePicker";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: BarChart3 },
@@ -50,17 +52,25 @@ function NavItem({ icon: Icon, label, active, href }: NavItemProps) {
 
 export default function DashboardLayout({
   children,
+  title,
 }: {
   children: React.ReactNode;
+  title?: string;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const defaultRange = {
+    startDate: new Date(2026, 0, 11),
+    endDate: new Date(2026, 0, 16),
+    key: "selection",
+  };
+  const [range, setRange] = useState([defaultRange]);
   const pathname = usePathname();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <aside
-        className={`fixed left-0 top-0 h-full bg-slate-900/50 backdrop-blur-xl border-r border-white/10 transition-all duration-300 z-50 ${
-          sidebarOpen ? "w-56" : "w-0 -translate-x-full"
+        className={`fixed left-0 top-0 h-full bg-slate-900/50 backdrop-blur-xl border-r border-white/10 transition-all duration-300 z-50 overflow-hidden ${
+          sidebarOpen ? "w-56 translate-x-0" : "w-0 -translate-x-full"
         }`}
       >
         <div className="p-4">
@@ -89,7 +99,7 @@ export default function DashboardLayout({
 
       <div
         className={`transition-all duration-300 ${
-          sidebarOpen ? "ml-56" : "ml-0"
+          sidebarOpen ? "ml-0 md:ml-56" : "ml-0 md:ml-0"
         }`}
       >
         <header className="bg-slate-900/30 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40">
@@ -102,8 +112,14 @@ export default function DashboardLayout({
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <div>
-                <h1 className="text-xl font-bold">Sales Dashboard</h1>
-                <p className="text-xs text-gray-400">11/01/2026 - 16/01/2026</p>
+                <h1 className="text-xl font-bold">
+                  {title ?? pathname ?? "Sales Dashboard"}
+                </h1>
+                <DateRangePicker
+                  value={range}
+                  onChange={(r) => setRange(r)}
+                  defaultRange={defaultRange}
+                />
               </div>
             </div>
 

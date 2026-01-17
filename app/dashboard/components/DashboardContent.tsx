@@ -263,7 +263,7 @@ export default function DashboardContent() {
               45, 62, 55, 78, 85, 92, 88, 95, 82, 75, 68, 58, 72, 85, 90, 88, 75,
               65, 55, 48, 42, 38, 35, 32,
             ].map((height, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <div key={i} className="flex-1 h-full flex flex-col items-center gap-1">
                 <div
                   className="w-full bg-gradient-to-t from-blue-500 to-cyan-400 rounded-t-sm hover:opacity-80 transition-opacity relative group"
                   style={{ height: `${height}%` }}

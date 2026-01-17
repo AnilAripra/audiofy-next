@@ -4,7 +4,7 @@ import DashboardContent from "./components/DashboardContent";
 
 export default function DashboardPage() {
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Sales s">
       <DashboardContent />
     </DashboardLayout>
   );
