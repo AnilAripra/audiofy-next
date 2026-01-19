@@ -76,6 +76,7 @@ export default function DashboardLayout({
         className={`fixed left-0 top-0 h-full theme-panel backdrop-blur-xl border-r transition-all duration-300 z-50 overflow-hidden ${
           sidebarOpen ? "w-56 translate-x-0" : "w-0 -translate-x-full"
         }`}
+        style={{ borderColor: 'var(--border)' }}
       >
         <div className="p-4">
           <div className="flex items-center gap-2 mb-6">
