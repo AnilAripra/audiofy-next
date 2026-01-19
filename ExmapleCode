@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, Phone, Clock, TrendingUp, TrendingDown, Users, Mic, Search, Filter, Download, ChevronRight, PlayCircle, FileText, Settings, Bell, Menu, X, Activity, Target, Zap, Award, Calendar } from 'lucide-react';
+import { BarChart3, Phone, Clock, TrendingUp, TrendingDown, Users, Mic, Search, Filter, Download, ChevronRight, PlayCircle, FileText, Settings, Bell, Menu, X, Activity, Target, Zap, Award, Calendar, ArrowLeft, ArrowUp, ArrowDown, Crown, Medal, Volume2, MessageSquare } from 'lucide-react';
 
 const ModernAudiofyDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -9,6 +9,13 @@ const ModernAudiofyDashboard = () => {
   const [filterBranch, setFilterBranch] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [streamingAgents, setStreamingAgents] = useState({});
+  
+  // Call Analytics states
+  const [selectedDepartment, setSelectedDepartment] = useState('Call Center - Sales');
+  const [dateFilter, setDateFilter] = useState('This Month');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showCallDetails, setShowCallDetails] = useState(false);
+  const [selectedCallType, setSelectedCallType] = useState('Inbound Sales Enquiry');
 
   const stats = [
     { label: 'Total Calls', value: '6,630', change: '-25.8%', isNegative: true, icon: Phone, color: 'from-blue-500 to-cyan-500' },
@@ -88,6 +95,48 @@ const ModernAudiofyDashboard = () => {
       [agentId]: !prev[agentId]
     }));
   };
+
+  // Leaderboard data
+  const leaderboardData = [
+    { rank: 1, name: 'Jamie Taylor', role: 'User', calls: 2, avgTime: '00:02', conversion: '0%', qualityScore: '83%', pose: null, avatar: 'JT' },
+    { rank: 2, name: 'Shuahib Miah', role: 'User', calls: 460, avgTime: '21:28', conversion: '44%', qualityScore: '53%', pose: 1, poseDir: 'up', avatar: 'SM' },
+    { rank: 3, name: 'Mohammed Malik', role: 'User', calls: 340, avgTime: '12:21', conversion: '34%', qualityScore: '50%', pose: 1, poseDir: 'up', avatar: 'MM' },
+    { rank: 4, name: 'Nadeem Ahmed', role: 'User', calls: 267, avgTime: '09:21', conversion: '41%', qualityScore: '50%', pose: 1, poseDir: 'up', avatar: 'NA', highlight: true },
+    { rank: 5, name: 'Sak Mohamed', role: 'User', calls: 527, avgTime: '14:34', conversion: '38%', qualityScore: '48%', pose: 1, poseDir: 'up', avatar: 'SM' },
+    { rank: 6, name: 'Omar El Harchaoui', role: 'User', calls: 309, avgTime: '14:04', conversion: '30%', qualityScore: '48%', pose: 4, poseDir: 'down', avatar: 'OH' },
+    { rank: 7, name: 'Asif Hussain', role: 'Manager', calls: 52, avgTime: '01:43', conversion: '18%', qualityScore: '47%', pose: 1, poseDir: 'up', avatar: 'AH' },
+    { rank: 8, name: 'Haris Bajwa', role: 'User', calls: 420, avgTime: '13:56', conversion: '42%', qualityScore: '45%', pose: 1, poseDir: 'down', avatar: 'HB' },
+    { rank: 9, name: 'Suhab Ahmed', role: 'User', calls: 284, avgTime: '13:22', conversion: '26%', qualityScore: '43%', pose: null, avatar: 'SA' },
+    { rank: 10, name: 'Anush Makwana', role: 'User', calls: 71, avgTime: '01:35', conversion: '32%', qualityScore: '37%', pose: 1, poseDir: 'down', avatar: 'AM' },
+  ];
+
+  const callTypesData = [
+    { name: 'Inbound Sales Enquiry', conversionRate: '45%', calls: 66, qualityScore: '49.46%' },
+    { name: 'Creating Urgency', conversionRate: null, calls: null, score: '2/5' },
+    { name: 'Handling Objections', conversionRate: null, calls: null, score: '1.5/5' },
+    { name: 'Appointment / Deposit Close', conversionRate: null, calls: null, score: '2/5' },
+    { name: 'Qualification', conversionRate: null, calls: null, score: '2.5/5' },
+    { name: 'Engagement & Rapport', conversionRate: null, calls: null, score: '1.5/5' },
+    { name: 'Greeting & Intro', conversionRate: null, calls: null, score: '1.5/5' },
+    { name: 'Outbound Sales Lead', conversionRate: '42%', calls: 52, qualityScore: '43.48%' },
+    { name: 'Customer Appointment Confirmation Call', conversionRate: null, calls: 31, qualityScore: '65.38%' },
+    { name: 'Internal Call Transfer', conversionRate: null, calls: 27, qualityScore: '76.68%' },
+    { name: 'Post-Sale General Enquiry', conversionRate: null, calls: 26, qualityScore: '44.84%' },
+  ];
+
+  const userCallHistory = [
+    { date: '18/01/2026', duration: '8:08 min', score: '84%', conversion: 'Yes', scoreColor: 'green' },
+    { date: '13/01/2026', duration: '23:11 min', score: '73%', conversion: 'Yes', scoreColor: 'green' },
+    { date: '12/01/2026', duration: '12:16 min', score: '70%', conversion: 'Yes', scoreColor: 'green' },
+    { date: '18/01/2026', duration: '4:33 min', score: '68%', conversion: 'Yes', scoreColor: 'orange' },
+    { date: '17/01/2026', duration: '9:19 min', score: '67%', conversion: 'Yes', scoreColor: 'orange' },
+    { date: '17/01/2026', duration: '4:12 min', score: '67%', conversion: 'Yes', scoreColor: 'orange' },
+    { date: '17/01/2026', duration: '3:31 min', score: '64%', conversion: 'No', scoreColor: 'orange' },
+    { date: '17/01/2026', duration: '1:39 min', score: '64%', conversion: 'Yes', scoreColor: 'orange' },
+    { date: '17/01/2026', duration: '5:31 min', score: '63%', conversion: 'Yes', scoreColor: 'orange' },
+    { date: '17/01/2026', duration: '6:13 min', score: '63%', conversion: 'Yes', scoreColor: 'orange' },
+    { date: '13/01/2026', duration: '6:42 min', score: '60%', conversion: 'Yes', scoreColor: 'orange' },
+  ];
 
   const NavItem = ({ icon: Icon, label, active, onClick }) => (
     <button
