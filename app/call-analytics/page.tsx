@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DashboardLayout from "../_components/DashboardLayout";
 import {
   Filter,
@@ -11,7 +11,15 @@ import {
   MoreHorizontal,
   ArrowUp,
   ArrowDown,
+  ArrowUpDown,
   PlayCircle,
+  X,
+  Search,
+  Phone,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
 } from "lucide-react";
 
 export default function CallAnalyticsPage() {
@@ -19,6 +27,15 @@ export default function CallAnalyticsPage() {
     "Call Center - Sales",
   );
   const [dateFilter, setDateFilter] = useState("This Month");
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [filterMinCalls, setFilterMinCalls] = useState(0);
+  const [filterMinScore, setFilterMinScore] = useState(0);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  } | null>(null);
+
 
   const leaderboardData = [
     {
@@ -229,6 +246,7 @@ export default function CallAnalyticsPage() {
       score: "84%",
       conversion: "Yes",
       scoreColor: "green",
+      user: "Nadeem Ahmed",
     },
     {
       date: "13/01/2026",
@@ -236,6 +254,7 @@ export default function CallAnalyticsPage() {
       score: "73%",
       conversion: "Yes",
       scoreColor: "green",
+      user: "Shuahib Miah",
     },
     {
       date: "12/01/2026",
@@ -243,6 +262,7 @@ export default function CallAnalyticsPage() {
       score: "70%",
       conversion: "Yes",
       scoreColor: "green",
+      user: "Mohammed Malik",
     },
     {
       date: "18/01/2026",
@@ -250,6 +270,7 @@ export default function CallAnalyticsPage() {
       score: "68%",
       conversion: "Yes",
       scoreColor: "orange",
+      user: "Sak Mohamed",
     },
     {
       date: "17/01/2026",
@@ -257,6 +278,7 @@ export default function CallAnalyticsPage() {
       score: "67%",
       conversion: "Yes",
       scoreColor: "orange",
+      user: "Omar El Harchaoui",
     },
     {
       date: "17/01/2026",
@@ -264,6 +286,7 @@ export default function CallAnalyticsPage() {
       score: "67%",
       conversion: "Yes",
       scoreColor: "orange",
+      user: "Nadeem Ahmed",
     },
     {
       date: "17/01/2026",
@@ -271,20 +294,95 @@ export default function CallAnalyticsPage() {
       score: "64%",
       conversion: "No",
       scoreColor: "orange",
+      user: "Haris Bajwa",
     },
   ];
+
+  const handleSort = (key: string) => {
+    let direction: "asc" | "desc" = "asc";
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const filteredLeaderboard = useMemo(() => {
+    let data = [...leaderboardData];
+
+    // Filter by Min Calls
+    if (filterMinCalls > 0) {
+      data = data.filter((agent) => agent.calls >= filterMinCalls);
+    }
+
+    // Filter by Min Quality Score
+    if (filterMinScore > 0) {
+      data = data.filter((agent) => {
+        const score = parseInt(agent.qualityScore.replace("%", ""));
+        return score >= filterMinScore;
+      });
+    }
+
+    // Sort
+    if (sortConfig) {
+      data.sort((a, b) => {
+        let aValue: any = a[sortConfig.key as keyof typeof a];
+        let bValue: any = b[sortConfig.key as keyof typeof b];
+
+        // Handle percentage strings
+        if (typeof aValue === "string" && aValue.includes("%")) {
+          aValue = parseFloat(aValue.replace("%", ""));
+          bValue = parseFloat(bValue.replace("%", ""));
+        }
+
+        // Handle time strings (00:00)
+        if (typeof aValue === "string" && aValue.includes(":")) {
+          const [aMin, aSec] = aValue.split(":").map(Number);
+          const [bMin, bSec] = bValue.split(":").map(Number);
+          aValue = aMin * 60 + aSec;
+          bValue = bMin * 60 + bSec;
+        }
+
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return data;
+  }, [leaderboardData, filterMinCalls, filterMinScore, sortConfig]);
+
+  const filteredHistory = useMemo(() => {
+    if (!selectedAgent) return userCallHistory;
+    return userCallHistory.filter((call) => call.user === selectedAgent);
+  }, [userCallHistory, selectedAgent]);
+
+  // Sort icon helper
+  const getSortIcon = (key: string) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ArrowUpDown size={12} className="text-gray-500" />;
+    }
+    return sortConfig.direction === "asc" ? (
+      <ArrowUp size={12} className="text-orange-600 dark:text-orange-400" />
+    ) : (
+      <ArrowDown size={12} className="text-orange-600 dark:text-orange-400" />
+    );
+  };
 
   return (
     <DashboardLayout title="Call Analytics">
       <div className="space-y-6">
         {/* Filters and Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="relative">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 min-w-[200px] theme-input"
+                className="appearance-none pl-4 pr-10 py-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 w-full sm:w-auto sm:min-w-[200px] theme-input"
               >
                 <option>Call Center - Sales</option>
                 <option>Call Center - Support</option>
@@ -296,11 +394,11 @@ export default function CallAnalyticsPage() {
               />
             </div>
 
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 min-w-[150px] theme-input"
+                className="appearance-none pl-4 pr-10 py-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 w-full sm:w-auto sm:min-w-[150px] theme-input"
               >
                 <option>This Month</option>
                 <option>Last Month</option>
@@ -314,17 +412,62 @@ export default function CallAnalyticsPage() {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button className="px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg flex items-center gap-2 transition-colors text-sm border border-white/10 theme-input">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setShowMoreFilters(!showMoreFilters)}
+              className={`flex-1 sm:flex-none justify-center px-3 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm border theme-input ${showMoreFilters ? "bg-orange-500/20 border-orange-500/50 text-orange-600 dark:text-orange-400" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
+            >
               <Filter size={16} />
               <span>More Filters</span>
             </button>
-            <button className="px-3 py-2 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center gap-2 hover:shadow-lg hover:shadow-orange-500/30 transition-all text-sm text-white">
+            <button
+              className="flex-1 sm:flex-none justify-center px-3 py-2 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center gap-2 hover:shadow-lg hover:shadow-orange-500/30 transition-all text-sm text-white"
+              style={{ color: "#ffffff" }}
+            >
               <Download size={16} />
               <span>Export Report</span>
             </button>
           </div>
         </div>
+
+        {/* Extended Filters Panel */}
+        {showMoreFilters && (
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 theme-panel animate-in slide-in-from-top-2">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="space-y-1.5 w-full sm:w-auto">
+                <label className="text-xs text-gray-400">Min. Calls</label>
+                <input
+                  type="number"
+                  value={filterMinCalls}
+                  onChange={(e) => setFilterMinCalls(Number(e.target.value))}
+                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm w-full sm:w-32 focus:outline-none focus:ring-2 focus:ring-orange-500/50 theme-input"
+                />
+              </div>
+              <div className="space-y-1.5 w-full sm:w-auto">
+                <label className="text-xs text-gray-400">
+                  Min. Quality Score (%)
+                </label>
+                <input
+                  type="number"
+                  value={filterMinScore}
+                  onChange={(e) => setFilterMinScore(Number(e.target.value))}
+                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm w-full sm:w-32 focus:outline-none focus:ring-2 focus:ring-orange-500/50 theme-input"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  setFilterMinCalls(0);
+                  setFilterMinScore(0);
+                }}
+                className="px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors w-full sm:w-auto text-center sm:text-left"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        )}
+
+     
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-12 gap-6">
@@ -350,27 +493,64 @@ export default function CallAnalyticsPage() {
                   <tr className="text-xs text-gray-400 border-b border-white/10">
                     <th className="py-3 pl-4 font-medium">Rank</th>
                     <th className="py-3 font-medium">Agent</th>
-                    <th className="py-3 text-center font-medium">Calls</th>
-                    <th className="py-3 text-center font-medium">Avg Time</th>
-                    <th className="py-3 text-center font-medium">Conversion</th>
-                    <th className="py-3 text-right pr-4 font-medium">
-                      Quality Score
+                    <th
+                      className="py-3 text-center font-medium cursor-pointer hover:text-white transition-colors group"
+                      onClick={() => handleSort("calls")}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        Calls {getSortIcon("calls")}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 text-center font-medium cursor-pointer hover:text-white transition-colors group"
+                      onClick={() => handleSort("avgTime")}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        Avg Time {getSortIcon("avgTime")}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 text-center font-medium cursor-pointer hover:text-white transition-colors group"
+                      onClick={() => handleSort("conversion")}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        Conversion {getSortIcon("conversion")}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 text-right pr-4 font-medium cursor-pointer hover:text-white transition-colors group"
+                      onClick={() => handleSort("qualityScore")}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Quality Score {getSortIcon("qualityScore")}
+                      </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
-                  {leaderboardData.map((agent, index) => (
+                  {filteredLeaderboard.map((agent, index) => (
                     <tr
                       key={index}
-                      className={`border-b border-white/5 hover:bg-white/5 transition-colors ${agent.highlight ? "bg-white/5" : ""}`}
+                      onClick={() =>
+                        setSelectedAgent(
+                          agent.name === selectedAgent ? null : agent.name,
+                        )
+                      }
+                      className={`border-b border-white/5 transition-colors cursor-pointer ${
+                        selectedAgent === agent.name
+                          ? "bg-orange-500/10 border-l-2 border-l-orange-500"
+                          : agent.highlight
+                            ? "bg-white/5 hover:bg-white/10"
+                            : "hover:bg-white/5"
+                      }`}
                     >
                       <td className="py-3 pl-4">
                         <div className="flex items-center gap-2">
                           <span
                             className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
                               agent.rank <= 3
-                                ? "bg-yellow-500/20 text-yellow-500"
-                                : "text-gray-500"
+                                ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-500"
+                                : "text-gray-600 dark:text-gray-500"
                             }`}
                           >
                             {agent.rank}
@@ -379,8 +559,8 @@ export default function CallAnalyticsPage() {
                             <span
                               className={
                                 agent.poseDir === "up"
-                                  ? "text-green-500"
-                                  : "text-red-500"
+                                  ? "text-green-600 dark:text-green-500"
+                                  : "text-red-600 dark:text-red-500"
                               }
                             >
                               {agent.poseDir === "up" ? (
@@ -398,24 +578,28 @@ export default function CallAnalyticsPage() {
                             {agent.avatar}
                           </div>
                           <div>
-                            <div className="font-medium">{agent.name}</div>
+                            <div
+                              className={`font-medium ${selectedAgent === agent.name ? "text-orange-600 dark:text-orange-400" : ""}`}
+                            >
+                              {agent.name}
+                            </div>
                             <div className="text-xs text-gray-400">
                               {agent.role}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 text-center font-mono text-gray-300">
+                      <td className="py-3 text-center font-mono text-gray-600 dark:text-gray-300">
                         {agent.calls}
                       </td>
-                      <td className="py-3 text-center font-mono text-gray-300">
+                      <td className="py-3 text-center font-mono text-gray-600 dark:text-gray-300">
                         {agent.avgTime}
                       </td>
-                      <td className="py-3 text-center font-mono text-gray-300">
+                      <td className="py-3 text-center font-mono text-gray-600 dark:text-gray-300">
                         {agent.conversion}
                       </td>
                       <td className="py-3 pr-4 text-right">
-                        <div className="inline-block px-2 py-1 rounded-lg bg-green-500/10 text-green-400 text-xs font-bold border border-green-500/20">
+                        <div className="inline-block px-2 py-1 rounded-lg bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-bold border border-green-500/20">
                           {agent.qualityScore}
                         </div>
                       </td>
@@ -429,8 +613,15 @@ export default function CallAnalyticsPage() {
           {/* Call Types */}
           <div className="col-span-12 lg:col-span-4 bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 theme-panel">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold">Call Types</h2>
-              <Target size={18} className="text-blue-400" />
+              <h2 className="text-lg font-bold">
+                Call Types{" "}
+                {selectedAgent && (
+                  <span className="text-orange-600 dark:text-orange-400 text-sm block font-normal">
+                    for {selectedAgent}
+                  </span>
+                )}
+              </h2>
+              <Target size={18} className="text-blue-600 dark:text-blue-400" />
             </div>
 
             <div className="space-y-4">
@@ -444,7 +635,7 @@ export default function CallAnalyticsPage() {
                       {type.name}
                     </span>
                     <span
-                      className={`text-xs font-bold ${type.qualityScore ? "text-green-400" : "text-gray-400"}`}
+                      className={`text-xs font-bold ${type.qualityScore ? "text-green-600 dark:text-green-400" : "text-gray-400"}`}
                     >
                       {type.qualityScore || type.score}
                     </span>
@@ -471,10 +662,27 @@ export default function CallAnalyticsPage() {
         {/* Recent Calls History */}
         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 theme-panel">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold">Recent Call History</h2>
-            <button className="flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300 transition-colors">
-              View All <ChevronRight size={14} />
-            </button>
+            <h2 className="text-lg font-bold">
+              Recent Call History{" "}
+              {selectedAgent && (
+                <span className="text-orange-600 dark:text-orange-400 text-sm font-normal">
+                  - {selectedAgent}
+                </span>
+              )}
+            </h2>
+            <div className="flex gap-2">
+              {selectedAgent && (
+                <button
+                  onClick={() => setSelectedAgent(null)}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors bg-white/5 px-2 py-1 rounded"
+                >
+                  <X size={12} /> Clear Filter
+                </button>
+              )}
+              <button className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors">
+                View All <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -482,6 +690,7 @@ export default function CallAnalyticsPage() {
               <thead>
                 <tr className="text-xs text-gray-400 border-b border-white/10">
                   <th className="py-3 pl-4 font-medium">Date</th>
+                  <th className="py-3 font-medium">User</th>
                   <th className="py-3 font-medium">Duration</th>
                   <th className="py-3 font-medium">Conversion</th>
                   <th className="py-3 text-right pr-4 font-medium">Score</th>
@@ -489,44 +698,53 @@ export default function CallAnalyticsPage() {
                 </tr>
               </thead>
               <tbody className="text-sm">
-                {userCallHistory.map((call, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                  >
-                    <td className="py-3 pl-4 text-gray-300">{call.date}</td>
-                    <td className="py-3 font-mono text-gray-300">
-                      {call.duration}
-                    </td>
-                    <td className="py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded text-xs ${
-                          call.conversion === "Yes"
-                            ? "bg-green-500/10 text-green-400"
-                            : "bg-red-500/10 text-red-400"
-                        }`}
-                      >
-                        {call.conversion}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4 text-right">
-                      <span
-                        className={`font-bold ${
-                          call.scoreColor === "green"
-                            ? "text-green-400"
-                            : "text-orange-400"
-                        }`}
-                      >
-                        {call.score}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4 text-right">
-                      <button className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-blue-400">
-                        <PlayCircle size={16} />
-                      </button>
+                {filteredHistory.length > 0 ? (
+                  filteredHistory.map((call, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                    >
+                      <td className="py-3 pl-4 text-gray-600 dark:text-gray-300">{call.date}</td>
+                      <td className="py-3 text-gray-600 dark:text-gray-300">{call.user}</td>
+                      <td className="py-3 font-mono text-gray-600 dark:text-gray-300">
+                        {call.duration}
+                      </td>
+                      <td className="py-3">
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs ${
+                            call.conversion === "Yes"
+                              ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                              : "bg-red-500/10 text-red-600 dark:text-red-400"
+                          }`}
+                        >
+                          {call.conversion}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4 text-right">
+                        <span
+                          className={`font-bold ${
+                            call.scoreColor === "green"
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-orange-600 dark:text-orange-400"
+                          }`}
+                        >
+                          {call.score}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4 text-right">
+                        <button className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-blue-600 dark:text-blue-400">
+                          <PlayCircle size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                      No call history found for this user.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
