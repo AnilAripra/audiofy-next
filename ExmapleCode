@@ -1,676 +1,994 @@
-import React, { useState } from 'react';
-import { BarChart3, Phone, Clock, TrendingUp, TrendingDown, Users, Mic, Search, Filter, Download, ChevronRight, PlayCircle, FileText, Settings, Bell, Menu, X, Activity, Target, Zap, Award, Calendar, ArrowLeft, ArrowUp, ArrowDown, Crown, Medal, Volume2, MessageSquare } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Filter, RotateCcw, X, PlayCircle, Phone, Clock, User, Building, ChevronLeft, ChevronRight, Edit2, MessageSquare, Star, Pause, SkipBack, SkipForward, Volume2, Download, Share2, Maximize2, Minimize2, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
 
-const ModernAudiofyDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchAgent, setSearchAgent] = useState('');
-  const [filterDepartment, setFilterDepartment] = useState('all');
-  const [filterBranch, setFilterBranch] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [streamingAgents, setStreamingAgents] = useState({});
+const RecordingsPage = () => {
+  const [activeTab, setActiveTab] = useState('DS Recordings');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [selectedRecording, setSelectedRecording] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(180);
+  const [volume, setVolume] = useState(0.8);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [activeTranscriptTab, setActiveTranscriptTab] = useState('transcript');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const audioRef = useRef(null);
+  const waveformRef = useRef(null);
   
-  // Call Analytics states
-  const [selectedDepartment, setSelectedDepartment] = useState('Call Center - Sales');
-  const [dateFilter, setDateFilter] = useState('This Month');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showCallDetails, setShowCallDetails] = useState(false);
-  const [selectedCallType, setSelectedCallType] = useState('Inbound Sales Enquiry');
-
-  const stats = [
-    { label: 'Total Calls', value: '6,630', change: '-25.8%', isNegative: true, icon: Phone, color: 'from-blue-500 to-cyan-500' },
-    { label: 'Average Score', value: '2.3', change: '+27.5%', isNegative: false, icon: BarChart3, color: 'from-purple-500 to-pink-500' },
-    { label: 'Avg Duration', value: '03 min', change: '+15.4%', isNegative: false, icon: Clock, color: 'from-orange-500 to-red-500' },
-    { label: 'Total Duration', value: '367h 49m', change: '-14.4%', isNegative: true, icon: TrendingUp, color: 'from-green-500 to-emerald-500' },
-  ];
-
-  const topPerformers = [
-    { name: 'Brandon Gubbins', calls: 33, rating: '51.30%', avatar: 'BG', trend: 'up', score: 51 },
-    { name: 'Aaron Shabani', calls: 47, rating: '49.44%', avatar: 'AS', trend: 'up', score: 49 },
-    { name: 'Zain Beg', calls: 338, rating: '45.59%', avatar: 'ZB', trend: 'down', score: 45 },
-    { name: 'Chey Cancannon', calls: 78, rating: '37.73%', avatar: 'CC', trend: 'down', score: 37 },
-  ];
-
-  const departments = [
-    { name: 'Buying', calls: 51, avgTime: '01:12', conversion: '0%', score: '57%', color: 'blue' },
-    { name: 'Sales', calls: 82, avgTime: '02:20', conversion: '9%', score: '57%', color: 'green' },
-    { name: 'Call Center', calls: 44, avgTime: '02:09', conversion: '53%', score: '51%', color: 'purple' },
-    { name: 'Aftersales', calls: 10, avgTime: '00:55', conversion: '0%', score: '41%', color: 'orange' },
-  ];
-
-  const recentCalls = [
-    { user: 'Sean Vignales', dept: 'Sales', duration: '0:55', score: '32%', status: 'Completed', platform: 'Cairoplanet', branch: 'Barnet' },
-    { user: 'Brandon Gubbins', dept: 'Sales', duration: '0:53', score: '45%', status: 'Completed', platform: 'Cairoplanet', branch: 'Watford' },
-    { user: 'Nadeem Ahmed', dept: 'Call Center', duration: '1:46', score: '76%', status: 'Completed', platform: 'Cairoplanet', branch: 'Mega' },
-    { user: 'Zain Beg', dept: 'Buying', duration: '0:49', score: '0%', status: 'Completed', platform: 'Caddadus', branch: 'Mega' },
-  ];
-
-  const liveAgents = [
-    { name: 'Aaron Shabani', status: 'active', duration: '00:12:34', dept: 'Sales' },
-    { name: 'Zane Hosseini', status: 'active', duration: '00:08:45', dept: 'Sales' },
-    { name: 'Nadeem Ahmed', status: 'active', duration: '00:15:22', dept: 'Call Center' },
-    { name: 'Tabish Ahmad', status: 'idle', duration: '00:00:00', dept: 'Sales' },
-  ];
-
-  const callTypes = [
-    { type: 'Voicemail', count: 24, percentage: '38%', color: 'bg-blue-500' },
-    { type: 'Buying Appointment', count: 20, percentage: '32%', color: 'bg-green-500' },
-    { type: 'Customer Appointment', count: 12, percentage: '19%', color: 'bg-purple-500' },
-    { type: 'Finance Proposal', count: 7, percentage: '11%', color: 'bg-orange-500' },
-  ];
-
-  const allAgents = [
-    { id: 1, name: 'Ahmad Safaye', username: 'a.safaye@car-planet.co.uk', branch: 'Barnet', department: 'Sales', status: 'online' },
-    { id: 2, name: 'Car Planet Accounts', username: 'invoice@car-planet.co.uk', branch: 'Barnet', department: 'Sales', status: 'online' },
-    { id: 3, name: 'Muanis Ramaxhiku', username: 'muanis@car-planet.co.uk', branch: 'Watford', department: 'Sales', status: 'online' },
-    { id: 4, name: 'Aaron Shabani', username: 'aaron.shabani@car-planet.co.uk', branch: 'Barnet', department: 'Sales', status: 'online' },
-    { id: 5, name: 'Mohamed Eka', username: 'mohamed.eka@car-planet.co.uk', branch: 'Watford', department: 'Sales', status: 'online' },
-    { id: 6, name: 'Dinosh Sinnathamby', username: 'dinosh@car-planet.co.uk', branch: 'Watford', department: 'Sales', status: 'online' },
-    { id: 7, name: 'Salman Khan', username: 'salman@car-planet.co.uk', branch: 'Watford', department: 'Sales', status: 'online' },
-    { id: 8, name: 'Sean Vignales', username: 'Sean@car-planet.co.uk', branch: 'Barnet', department: 'Sales', status: 'online' },
-    { id: 9, name: 'Tabish Ahmad', username: 'tabish@car-planet.co.uk', branch: 'Barnet', department: 'Sales', status: 'online' },
-    { id: 10, name: 'Muhamamd Quddus', username: 'm.quddus@car-planet.co.uk', branch: 'Mega', department: 'Parts', status: 'online' },
-    { id: 11, name: 'Xhesika Dedgjonaj', username: 'xhesika@car-planet.co.uk', branch: 'Barnet', department: 'Sales', status: 'online' },
-    { id: 12, name: 'Mashrur Rahman', username: 'mashrur@car-planet.co.uk', branch: 'Mega', department: 'Aftersales', status: 'online' },
-    { id: 13, name: 'Mohammed Malik', username: 'mohammed.malik@car-planet.co.uk', branch: 'Mega', department: 'Call Center', status: 'online' },
-    { id: 14, name: 'Andrew Kettenis', username: 'andrew@car-planet.co.uk', branch: 'Mega', department: 'Sales', status: 'offline' },
-    { id: 15, name: 'Brandon Gubbins', username: 'brandon@car-planet.co.uk', branch: 'Watford', department: 'Sales', status: 'offline' },
-    { id: 16, name: 'Zain Beg', username: 'zain@car-planet.co.uk', branch: 'Barnet', department: 'Buying', status: 'offline' },
-  ];
-
-  const filteredAgents = allAgents.filter(agent => {
-    const matchesSearch = agent.name.toLowerCase().includes(searchAgent.toLowerCase()) || 
-                         agent.username.toLowerCase().includes(searchAgent.toLowerCase());
-    const matchesDept = filterDepartment === 'all' || agent.department === filterDepartment;
-    const matchesBranch = filterBranch === 'all' || agent.branch === filterBranch;
-    const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
-    return matchesSearch && matchesDept && matchesBranch && matchesStatus;
+  const [quickFilters, setQuickFilters] = useState({
+    today: false,
+    yesterday: false,
+    last7Days: false,
+    thisMonth: false,
+    uploaded: false,
+    transcribed: false,
+    rated: false,
+    commented: false,
+    notCommented: false,
+    conversionCalls: false,
+    nonCompliant: false,
+    horizon: false,
+    xBees: false,
   });
 
-  const onlineCount = filteredAgents.filter(a => a.status === 'online').length;
+  const recordings = [
+    {
+      id: 1,
+      userName: 'Nazmul Chowdhur',
+      department: 'Sales',
+      userNo: '+441923609482',
+      otherParty: '+447760984398',
+      duration: '0:56',
+      connectTime: '19/01/26 8:55 pm',
+      callType: 'Outbound Sales Lead',
+      callStatus: 'OUT',
+      statusBg: 'Being Completed',
+      platform: 'Cairoplanet',
+      branch: 'Barnet',
+      conversion: 'No',
+      compliance: 'N/A',
+      average: '20.00%',
+      comments: 'N/A',
+      recordingSource: 'X-Bees',
+      updatedAt: '19/01/2026',
+      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      transcript: [
+        { speaker: 'Agent', time: '00:03', endTime: '00:05', text: 'Hello, Mad Planner Watford. Zak speaking.', sentiment: 'neutral' },
+        { speaker: 'Agent', time: '00:05', endTime: '00:06', text: 'How can I help you?', sentiment: 'positive' },
+        { speaker: 'Customer', time: '00:06', endTime: '00:07', text: 'Oh, hello', sentiment: 'neutral' },
+        { speaker: 'Customer', time: '00:07', endTime: '00:10', text: "I'm trying to get through to the Barnet site.", sentiment: 'neutral' },
+        { speaker: 'Agent', time: '00:10', endTime: '00:13', text: 'Certainly, let me transfer your call right away.', sentiment: 'positive' },
+        { speaker: 'Customer', time: '00:13', endTime: '00:15', text: 'Thank you so much!', sentiment: 'positive' },
+      ],
+      scores: [
+        { name: 'Communication with Receiving Agent', rating: 'N/A', outOf: 3, color: 'gray', feedback: 'Not applicable for this call type' },
+        { name: 'Clean Language', rating: 3, outOf: 3, color: 'green', feedback: 'Excellent professional language throughout' },
+        { name: 'Greeting & Introduction', rating: 3, outOf: 3, color: 'green', feedback: 'Perfect greeting and identification' },
+      ],
+      totalWords: 66,
+      wordsChanged: 0,
+      accuracy: '100.00%',
+      callSummary: 'Customer called to be transferred to Barnet location. Agent handled the request professionally with proper greeting and efficient service.',
+    },
+    {
+      id: 3,
+      userName: 'Omar El Harchaoui',
+      department: 'Call Center - Sales',
+      userNo: '+441923609482',
+      otherParty: '+447844512199',
+      duration: '3:09',
+      connectTime: '19/01/26 8:48 pm',
+      callType: 'Customer Appointment',
+      callStatus: 'IN',
+      statusBg: 'Being Completed',
+      platform: 'Cairoplanet',
+      branch: 'Mega',
+      conversion: 'Yes',
+      compliance: 'Yes',
+      average: '76.00%',
+      comments: 'Great call handling',
+      recordingSource: 'X-Bees',
+      updatedAt: '19/01/2026',
+      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+      transcript: [
+        { speaker: 'Agent', time: '00:00', endTime: '00:04', text: 'MOTORS is connecting you to a sales enquiry', sentiment: 'neutral' },
+        { speaker: 'Customer', time: '00:04', endTime: '00:05', text: 'Hello sir', sentiment: 'positive' },
+        { speaker: 'Agent', time: '00:05', endTime: '00:09', text: 'Is this Watford?', sentiment: 'neutral' },
+        { speaker: 'Agent', time: '00:09', endTime: '00:11', text: 'Yes, this is Watford', sentiment: 'positive' },
+        { speaker: 'Agent', time: '00:11', endTime: '00:15', text: 'How can I help?', sentiment: 'positive' },
+        { speaker: 'Customer', time: '00:15', endTime: '00:22', text: 'Actually, I received a call from your showroom. I work for Iron Tiguan', sentiment: 'neutral' },
+        { speaker: 'Customer', time: '00:22', endTime: '00:25', text: 'And you want a number?', sentiment: 'neutral' },
+        { speaker: 'Customer', time: '00:25', endTime: '00:28', text: 'Yes, can I get a number please?', sentiment: 'positive' },
+        { speaker: 'Customer', time: '00:28', endTime: '00:30', text: 'M167ABK', sentiment: 'neutral' },
+      ],
+      scores: [
+        { name: 'Greeting & Intro', rating: 3, outOf: 5, color: 'blue', feedback: 'Good introduction, could be more enthusiastic' },
+        { name: 'Cancellation Handling', rating: 4, outOf: 5, color: 'green', feedback: 'Handled customer concerns effectively' },
+        { name: 'Handling Customer Concerns', rating: 4, outOf: 5, color: 'green', feedback: 'Addressed all questions professionally' },
+        { name: 'Rescheduling / Next Steps', rating: 4, outOf: 5, color: 'green', feedback: 'Clear next steps provided' },
+        { name: 'Customer Satisfaction & Closing', rating: 4, outOf: 5, color: 'green', feedback: 'Good closing, ensured customer satisfaction' },
+      ],
+      totalWords: 341,
+      wordsChanged: 0,
+      accuracy: '100.00%',
+      callSummary: 'Customer inquiry about a vehicle (M167ABK). Agent successfully handled the enquiry, provided information, and ensured customer satisfaction. Appointment scheduled for follow-up.',
+    },
+  ];
 
-  const toggleStreaming = (agentId) => {
-    setStreamingAgents(prev => ({
+  useEffect(() => {
+    let interval;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setCurrentTime(prev => {
+          if (prev >= duration) {
+            setIsPlaying(false);
+            return duration;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, duration]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleSeek = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    setCurrentTime(Math.floor(percentage * duration));
+  };
+
+  const toggleQuickFilter = (filter) => {
+    setQuickFilters(prev => ({
       ...prev,
-      [agentId]: !prev[agentId]
+      [filter]: !prev[filter]
     }));
   };
 
-  // Leaderboard data
-  const leaderboardData = [
-    { rank: 1, name: 'Jamie Taylor', role: 'User', calls: 2, avgTime: '00:02', conversion: '0%', qualityScore: '83%', pose: null, avatar: 'JT' },
-    { rank: 2, name: 'Shuahib Miah', role: 'User', calls: 460, avgTime: '21:28', conversion: '44%', qualityScore: '53%', pose: 1, poseDir: 'up', avatar: 'SM' },
-    { rank: 3, name: 'Mohammed Malik', role: 'User', calls: 340, avgTime: '12:21', conversion: '34%', qualityScore: '50%', pose: 1, poseDir: 'up', avatar: 'MM' },
-    { rank: 4, name: 'Nadeem Ahmed', role: 'User', calls: 267, avgTime: '09:21', conversion: '41%', qualityScore: '50%', pose: 1, poseDir: 'up', avatar: 'NA', highlight: true },
-    { rank: 5, name: 'Sak Mohamed', role: 'User', calls: 527, avgTime: '14:34', conversion: '38%', qualityScore: '48%', pose: 1, poseDir: 'up', avatar: 'SM' },
-    { rank: 6, name: 'Omar El Harchaoui', role: 'User', calls: 309, avgTime: '14:04', conversion: '30%', qualityScore: '48%', pose: 4, poseDir: 'down', avatar: 'OH' },
-    { rank: 7, name: 'Asif Hussain', role: 'Manager', calls: 52, avgTime: '01:43', conversion: '18%', qualityScore: '47%', pose: 1, poseDir: 'up', avatar: 'AH' },
-    { rank: 8, name: 'Haris Bajwa', role: 'User', calls: 420, avgTime: '13:56', conversion: '42%', qualityScore: '45%', pose: 1, poseDir: 'down', avatar: 'HB' },
-    { rank: 9, name: 'Suhab Ahmed', role: 'User', calls: 284, avgTime: '13:22', conversion: '26%', qualityScore: '43%', pose: null, avatar: 'SA' },
-    { rank: 10, name: 'Anush Makwana', role: 'User', calls: 71, avgTime: '01:35', conversion: '32%', qualityScore: '37%', pose: 1, poseDir: 'down', avatar: 'AM' },
-  ];
+  const getCurrentTranscript = () => {
+    if (!selectedRecording) return null;
+    return selectedRecording.transcript.find(t => {
+      const time = parseInt(t.time.split(':')[0]) * 60 + parseInt(t.time.split(':')[1]);
+      const endTime = parseInt(t.endTime.split(':')[0]) * 60 + parseInt(t.endTime.split(':')[1]);
+      return currentTime >= time && currentTime <= endTime;
+    });
+  };
 
-  const callTypesData = [
-    { name: 'Inbound Sales Enquiry', conversionRate: '45%', calls: 66, qualityScore: '49.46%' },
-    { name: 'Creating Urgency', conversionRate: null, calls: null, score: '2/5' },
-    { name: 'Handling Objections', conversionRate: null, calls: null, score: '1.5/5' },
-    { name: 'Appointment / Deposit Close', conversionRate: null, calls: null, score: '2/5' },
-    { name: 'Qualification', conversionRate: null, calls: null, score: '2.5/5' },
-    { name: 'Engagement & Rapport', conversionRate: null, calls: null, score: '1.5/5' },
-    { name: 'Greeting & Intro', conversionRate: null, calls: null, score: '1.5/5' },
-    { name: 'Outbound Sales Lead', conversionRate: '42%', calls: 52, qualityScore: '43.48%' },
-    { name: 'Customer Appointment Confirmation Call', conversionRate: null, calls: 31, qualityScore: '65.38%' },
-    { name: 'Internal Call Transfer', conversionRate: null, calls: 27, qualityScore: '76.68%' },
-    { name: 'Post-Sale General Enquiry', conversionRate: null, calls: 26, qualityScore: '44.84%' },
-  ];
-
-  const userCallHistory = [
-    { date: '18/01/2026', duration: '8:08 min', score: '84%', conversion: 'Yes', scoreColor: 'green' },
-    { date: '13/01/2026', duration: '23:11 min', score: '73%', conversion: 'Yes', scoreColor: 'green' },
-    { date: '12/01/2026', duration: '12:16 min', score: '70%', conversion: 'Yes', scoreColor: 'green' },
-    { date: '18/01/2026', duration: '4:33 min', score: '68%', conversion: 'Yes', scoreColor: 'orange' },
-    { date: '17/01/2026', duration: '9:19 min', score: '67%', conversion: 'Yes', scoreColor: 'orange' },
-    { date: '17/01/2026', duration: '4:12 min', score: '67%', conversion: 'Yes', scoreColor: 'orange' },
-    { date: '17/01/2026', duration: '3:31 min', score: '64%', conversion: 'No', scoreColor: 'orange' },
-    { date: '17/01/2026', duration: '1:39 min', score: '64%', conversion: 'Yes', scoreColor: 'orange' },
-    { date: '17/01/2026', duration: '5:31 min', score: '63%', conversion: 'Yes', scoreColor: 'orange' },
-    { date: '17/01/2026', duration: '6:13 min', score: '63%', conversion: 'Yes', scoreColor: 'orange' },
-    { date: '13/01/2026', duration: '6:42 min', score: '60%', conversion: 'Yes', scoreColor: 'orange' },
-  ];
-
-  const NavItem = ({ icon: Icon, label, active, onClick }) => (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm ${
-        active 
-          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/20' 
-          : 'text-gray-400 hover:text-white hover:bg-white/5'
-      }`}
-    >
-      <Icon size={18} />
-      <span className="font-medium">{label}</span>
-    </button>
-  );
+  const currentTranscript = getCurrentTranscript();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-      {/* Compact Sidebar */}
-      <aside className={`fixed left-0 top-0 h-full bg-slate-900/50 backdrop-blur-xl border-r border-white/10 transition-all duration-300 z-50 ${sidebarOpen ? 'w-56' : 'w-0 -translate-x-full'}`}>
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <Mic className="text-white" size={16} />
-            </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">Audiofy</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-2">Recording History</h1>
+        <div className="flex items-center gap-4 text-sm">
+          <button
+            onClick={() => setActiveTab('DS Recordings')}
+            className={`px-4 py-2 rounded-lg transition-all ${
+              activeTab === 'DS Recordings'
+                ? 'text-orange-400 border-b-2 border-orange-400'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            DS Recordings
+          </button>
+          <button
+            onClick={() => setActiveTab('Horizon Voice Calls')}
+            className={`px-4 py-2 rounded-lg transition-all ${
+              activeTab === 'Horizon Voice Calls'
+                ? 'text-orange-400 border-b-2 border-orange-400'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Horizon Voice Calls
+          </button>
+          <button
+            onClick={() => setActiveTab('Failed transcriptions')}
+            className={`px-4 py-2 rounded-lg transition-all ${
+              activeTab === 'Failed transcriptions'
+                ? 'text-orange-400 border-b-2 border-orange-400'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Failed transcriptions
+          </button>
+        </div>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 mb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[250px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search by user no. & other party no..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm"
+            />
           </div>
           
-          <nav className="space-y-1">
-            <NavItem icon={BarChart3} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-            <NavItem icon={Phone} label="Call Analytics" active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} />
-            <NavItem icon={Users} label="Agents" active={activeTab === 'agents'} onClick={() => setActiveTab('agents')} />
-            <NavItem icon={Mic} label="Live Stream" active={activeTab === 'live'} onClick={() => setActiveTab('live')} />
-            <NavItem icon={FileText} label="Reports" active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />
-            <NavItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
-          </nav>
+          <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors">
+            Date Range
+          </button>
+          
+          <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors">
+            Review Date Range
+          </button>
+          
+          <button
+            onClick={() => setShowAdvancedFilters(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold flex items-center gap-2"
+          >
+            <Filter size={16} />
+            More Filters
+          </button>
+          
+          <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors flex items-center gap-2">
+            <RotateCcw size={16} />
+            Reset
+          </button>
         </div>
-      </aside>
+      </div>
 
-      {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-56' : 'ml-0'}`}>
-        {/* Compact Header */}
-        <header className="bg-slate-900/30 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40">
-          <div className="px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-              <div>
-                <h1 className="text-xl font-bold">Sales Dashboard</h1>
-                <p className="text-xs text-gray-400">11/01/2026 - 16/01/2026</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  className="pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 w-48 text-sm"
-                />
-              </div>
-              <button className="p-2 hover:bg-white/5 rounded-lg transition-colors relative">
-                <Bell size={18} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
-              </button>
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center font-bold text-sm">
-                AA
-              </div>
-            </div>
+      {/* Recordings Table */}
+      <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 border-b border-white/10">
+              <tr>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">User Name</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Department</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">User No.</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Other Party No.</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Duration</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Connect Time</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Call Type</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Call Status</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Platform</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Branch</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Conversion</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Compliance</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Average</th>
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recordings.map((record) => (
+                <tr
+                  key={record.id}
+                  onClick={() => {
+                    setSelectedRecording(record);
+                    setCurrentTime(0);
+                    setIsPlaying(false);
+                    setDuration(parseInt(record.duration.split(':')[0]) * 60 + parseInt(record.duration.split(':')[1]));
+                  }}
+                  className="border-b border-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <td className="py-3 px-3">{record.userName}</td>
+                  <td className="py-3 px-3 text-gray-300">{record.department}</td>
+                  <td className="py-3 px-3 text-gray-400 font-mono text-xs">{record.userNo}</td>
+                  <td className="py-3 px-3">
+                    <div className="flex items-center gap-2">
+                      <Phone size={14} className="text-orange-400" />
+                      <span className="font-mono text-xs">{record.otherParty}</span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-3">{record.duration}</td>
+                  <td className="py-3 px-3 text-gray-400 text-xs">{record.connectTime}</td>
+                  <td className="py-3 px-3">{record.callType}</td>
+                  <td className="py-3 px-3">
+                    <div className="flex flex-col gap-1">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold text-center ${
+                        record.callStatus === 'OUT' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {record.callStatus}
+                      </span>
+                      <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-semibold text-center">
+                        {record.statusBg}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-semibold">
+                      {record.platform}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3">{record.branch}</td>
+                  <td className="py-3 px-3">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                      record.conversion === 'Yes' ? 'bg-green-500/20 text-green-400' :
+                      record.conversion === 'No' ? 'bg-red-500/20 text-red-400' :
+                      'bg-gray-500/20 text-gray-400'
+                    }`}>
+                      {record.conversion}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                      record.compliance === 'Yes' ? 'bg-green-500/20 text-green-400' :
+                      record.compliance === 'No' ? 'bg-red-500/20 text-red-400' :
+                      'bg-gray-500/20 text-gray-400'
+                    }`}>
+                      {record.compliance}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className={`font-bold ${
+                      parseFloat(record.average) >= 70 ? 'text-green-400' :
+                      parseFloat(record.average) >= 50 ? 'text-orange-400' :
+                      'text-red-400'
+                    }`}>
+                      {record.average}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3">
+                    <button className="p-2 hover:bg-orange-500/20 rounded-lg transition-colors">
+                      <PlayCircle size={18} className="text-orange-400" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between p-4 border-t border-white/10">
+          <div className="text-sm text-gray-400">
+            1 to 25 of 7,006 Calls
           </div>
-        </header>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-400">Page 01 of 281</span>
+            <div className="flex gap-2">
+              <button className="p-2 bg-orange-500/20 text-orange-400 rounded-lg hover:bg-orange-500/30 transition-colors">
+                <ChevronLeft size={16} />
+              </button>
+              <button className="p-2 bg-orange-500/20 text-orange-400 rounded-lg hover:bg-orange-500/30 transition-colors">
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <select className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm">
+              <option>25 Rows</option>
+              <option>50 Rows</option>
+              <option>100 Rows</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-        {/* Dashboard Content */}
-        <main className="p-6">
-          {activeTab === 'dashboard' ? (
-            <>
-              {/* Compact Stats Grid */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
-            {stats.map((stat, index) => (
-              <div 
-                key={index}
-                className="relative bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all overflow-hidden group"
+      {/* Advanced Filters Modal */}
+      {showAdvancedFilters && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-xl border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+              <h2 className="text-xl font-bold">Advanced Filters</h2>
+              <button
+                onClick={() => setShowAdvancedFilters(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity`}></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.color}`}>
-                      <stat.icon size={18} />
-                    </div>
-                    <div className={`flex items-center gap-1 text-xs ${stat.isNegative ? 'text-red-400' : 'text-green-400'}`}>
-                      {stat.isNegative ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
-                      {stat.change}
-                    </div>
-                  </div>
-                  <h3 className="text-gray-400 text-xs mb-1">{stat.label}</h3>
-                  <p className="text-2xl font-bold">{stat.value}</p>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Quick Filters */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">Quick Filters</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries({
+                    today: 'Today',
+                    yesterday: 'Yesterday',
+                    last7Days: 'Last 7 Days',
+                    thisMonth: 'This Month',
+                    uploaded: 'Uploaded',
+                    transcribed: 'Transcribed',
+                    rated: 'Rated',
+                    commented: 'Commented',
+                    notCommented: 'Not Commented',
+                    conversionCalls: 'Conversion Calls',
+                    nonCompliant: 'Non-Compliant',
+                    horizon: 'Horizon',
+                    xBees: 'X-Bees',
+                  }).map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => toggleQuickFilter(key)}
+                      className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                        quickFilters[key]
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white'
+                          : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* Call Volume Chart */}
-            <div className="col-span-8 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-bold">Call Volume Trend</h2>
-                  <p className="text-xs text-gray-400">Hourly breakdown for today</p>
-                </div>
-                <select className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm">
-                  <option>Today</option>
-                  <option>Yesterday</option>
-                  <option>Last 7 Days</option>
+              {/* Dropdown Filters */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Select User</option>
+                  <option>Nazmul Chowdhur</option>
+                  <option>Angeline Packy</option>
+                  <option>Omar El Harcha</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Select Branch</option>
+                  <option>Barnet</option>
+                  <option>Watford</option>
+                  <option>Mega</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Select Commented By</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Rating Completed</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Conversion Calls</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Compliance Calls</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Department</option>
+                  <option>Sales</option>
+                  <option>Call Center - Sales</option>
+                  <option>Buying</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Call Type</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Recording Source</option>
+                </select>
+
+                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                  <option>Platform</option>
                 </select>
               </div>
-              
-              <div className="h-48 flex items-end gap-2">
-                {[45, 62, 55, 78, 85, 92, 88, 95, 82, 75, 68, 58, 72, 85, 90, 88, 75, 65, 55, 48, 42, 38, 35, 32].map((height, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                    <div 
-                      className="w-full bg-gradient-to-t from-blue-500 to-cyan-400 rounded-t-sm hover:opacity-80 transition-opacity relative group"
-                      style={{ height: `${height}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        {Math.floor(height * 1.5)} calls
-                      </div>
-                    </div>
-                    {i % 4 === 0 && <span className="text-[10px] text-gray-500">{i}:00</span>}
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* Call Types Distribution */}
-            <div className="col-span-4 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <h2 className="text-lg font-bold mb-4">Call Types</h2>
-              <div className="space-y-3">
-                {callTypes.map((type, index) => (
-                  <div key={index}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium">{type.type}</span>
-                      <span className="text-sm text-gray-400">{type.count}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${type.color} rounded-full transition-all`}
-                          style={{ width: type.percentage }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-400 w-10 text-right">{type.percentage}</span>
-                    </div>
-                  </div>
-                ))}
+            <div className="p-6 border-t border-white/10 flex items-center justify-between sticky bottom-0 bg-slate-900">
+              <button className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors">
+                Clear Filters
+              </button>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-400">Total Record Found: 7006</span>
+                <button
+                  onClick={() => setShowAdvancedFilters(false)}
+                  className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold"
+                >
+                  Done
+                </button>
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Second Row */}
-          <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* Top Performers */}
-            <div className="col-span-4 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold">Top Performers</h2>
-                <Award size={18} className="text-orange-400" />
-              </div>
-              
-              <div className="space-y-3">
-                {topPerformers.map((performer, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center font-bold text-sm">
-                      {performer.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm truncate">{performer.name}</h3>
-                      <p className="text-xs text-gray-400">{performer.calls} calls</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-orange-400">{performer.rating}</div>
-                      <div className="w-16 h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"
-                          style={{ width: `${performer.score}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Department Performance */}
-            <div className="col-span-5 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold">Department Performance</h2>
-                <Target size={18} className="text-blue-400" />
-              </div>
-              
-              <div className="space-y-2.5">
-                {departments.map((dept, index) => (
-                  <div key={index} className="p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-sm">{dept.name}</span>
-                      <span className="text-xs text-gray-400">{dept.calls} calls</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3 text-xs">
-                      <div>
-                        <div className="text-gray-400">Avg Time</div>
-                        <div className="font-semibold text-blue-400">{dept.avgTime}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Conversion</div>
-                        <div className="font-semibold text-green-400">{dept.conversion}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Quality</div>
-                        <div className="font-semibold text-orange-400">{dept.score}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recording Status */}
-            <div className="col-span-3 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <h2 className="text-lg font-bold mb-4">Recording Status</h2>
-              
-              <div className="space-y-4">
-                <div className="p-3 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold">Horizon</h3>
-                    <Activity size={16} className="text-blue-400" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <div className="text-gray-400">Total</div>
-                      <div className="text-xl font-bold text-blue-400">9</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-400">Done</div>
-                      <div className="text-xl font-bold text-green-400">9</div>
-                    </div>
-                  </div>
+      {/* Modern Transcription Modal */}
+      {selectedRecording && (
+        <div className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 ${isFullscreen ? 'p-0' : ''}`}>
+          <div className={`bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-white/20 w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl ${isFullscreen ? 'h-screen max-h-screen rounded-none' : 'max-w-[95vw]'}`}>
+            
+            {/* Compact Header */}
+            <div className="px-6 py-4 border-b border-white/10 bg-slate-900/50 backdrop-blur-sm flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
+                  {selectedRecording.userName.split(' ').map(n => n[0]).join('')}
                 </div>
-
-                <div className="p-3 bg-gradient-to-br from-orange-500/10 to-pink-500/10 rounded-lg border border-orange-500/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold">Xbees</h3>
-                    <Zap size={16} className="text-orange-400" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <div className="text-gray-400">Total</div>
-                      <div className="text-lg font-bold text-orange-400">11,006</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-400">Valid</div>
-                      <div className="text-lg font-bold text-green-400">6,932</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                    <div>
-                      <div className="text-gray-400">Short</div>
-                      <div className="text-sm font-bold text-red-400">4,040</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-400">Invalid</div>
-                      <div className="text-sm font-bold text-red-400">34</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Third Row */}
-          <div className="grid grid-cols-12 gap-4">
-            {/* Recent Calls */}
-            <div className="col-span-8 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold">Recent Calls</h2>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg flex items-center gap-2 transition-colors text-sm">
-                    <Filter size={14} />
-                    Filter
-                  </button>
-                  <button className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center gap-2 hover:shadow-lg hover:shadow-orange-500/30 transition-all text-sm">
-                    <Download size={14} />
-                    Export
-                  </button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400">Agent</th>
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400">Dept</th>
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400">Duration</th>
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400">Score</th>
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400">Platform</th>
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400">Branch</th>
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentCalls.map((call, index) => (
-                      <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center text-xs font-bold">
-                              {call.user.split(' ').map(n => n[0]).join('')}
-                            </div>
-                            <span className="font-medium text-sm">{call.user}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-gray-400 text-xs">{call.dept}</td>
-                        <td className="py-3 px-3 text-xs">{call.duration}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            parseInt(call.score) >= 70 ? 'bg-green-500/20 text-green-400' :
-                            parseInt(call.score) >= 50 ? 'bg-orange-500/20 text-orange-400' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
-                            {call.score}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-xs text-gray-400">{call.platform}</td>
-                        <td className="py-3 px-3 text-xs text-gray-400">{call.branch}</td>
-                        <td className="py-3 px-3">
-                          <button className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
-                            <PlayCircle size={16} className="text-orange-400" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Live Agents */}
-            <div className="col-span-4 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold">Live Agents</h2>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-400">29 Online</span>
-                </div>
-              </div>
-              
-              <div className="space-y-2.5">
-                {liveAgents.map((agent, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                    <div className="relative">
-                      <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center font-bold text-xs">
-                        {agent.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-900 ${agent.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm truncate">{agent.name}</h3>
-                      <p className="text-xs text-gray-400">{agent.dept}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-mono text-blue-400">{agent.duration}</div>
-                      <div className="text-[10px] text-gray-500">{agent.status}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-            </>
-          ) : activeTab === 'live' ? (
-            /* Live Streaming View */
-            <div className="space-y-4">
-              {/* Filters */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input 
-                      type="text" 
-                      placeholder="Search by user name..." 
-                      value={searchAgent}
-                      onChange={(e) => setSearchAgent(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm"
-                    />
-                  </div>
-                  
-                  <select 
-                    value={filterDepartment}
-                    onChange={(e) => setFilterDepartment(e.target.value)}
-                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm min-w-[160px]"
-                  >
-                    <option value="all">All Departments</option>
-                    <option value="Sales">Sales</option>
-                    <option value="Buying">Buying</option>
-                    <option value="Call Center">Call Center</option>
-                    <option value="Parts">Parts</option>
-                    <option value="Aftersales">Aftersales</option>
-                  </select>
-                  
-                  <select 
-                    value={filterBranch}
-                    onChange={(e) => setFilterBranch(e.target.value)}
-                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm min-w-[140px]"
-                  >
-                    <option value="all">All Branches</option>
-                    <option value="Barnet">Barnet</option>
-                    <option value="Watford">Watford</option>
-                    <option value="Mega">Mega</option>
-                  </select>
-                  
-                  <select 
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm min-w-[120px]"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="online">Online</option>
-                    <option value="offline">Offline</option>
-                  </select>
-                  
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <Activity size={18} className="text-blue-400" />
-                    <span className="text-sm font-semibold">
-                      Showing <span className="text-blue-400">{filteredAgents.length}</span> out of <span className="text-blue-400">{allAgents.length}</span> agents
+                <div>
+                  <h2 className="text-xl font-bold">{selectedRecording.userName}</h2>
+                  <div className="flex items-center gap-3 text-sm text-gray-400 mt-1">
+                    <span className="flex items-center gap-1">
+                      <Building size={14} />
+                      {selectedRecording.department}
                     </span>
-                    <span className="text-xs text-gray-400 ml-2">
-                      ({onlineCount} online)
+                    <span className="flex items-center gap-1">
+                      <Phone size={14} />
+                      {selectedRecording.otherParty}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={14} />
+                      {selectedRecording.connectTime}
                     </span>
                   </div>
                 </div>
               </div>
+              
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg">
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                    selectedRecording.callStatus === 'OUT' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'
+                  }`}>
+                    {selectedRecording.callStatus}
+                  </span>
+                  <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-semibold">
+                    {selectedRecording.platform}
+                  </span>
+                  <span className="text-sm text-gray-400">{selectedRecording.callType}</span>
+                </div>
+                
+                <button 
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                >
+                  {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                </button>
+                <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                  <Download size={18} />
+                </button>
+                <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                  <Share2 size={18} />
+                </button>
+                <button
+                  onClick={() => setSelectedRecording(null)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
 
-              {/* Agents Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                {filteredAgents.map((agent) => (
+            {/* Main Content */}
+            <div className="flex-1 overflow-hidden flex">
+              
+              {/* Left Side - Audio & Transcript */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                
+                {/* Audio Player Section */}
+                <div className="p-6 border-b border-white/10 bg-gradient-to-b from-slate-800/30 to-transparent">
+                  
+                  {/* Waveform */}
                   <div 
-                    key={agent.id}
-                    className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all"
+                    ref={waveformRef}
+                    onClick={handleSeek}
+                    className="relative h-32 bg-slate-900/80 rounded-xl overflow-hidden cursor-pointer mb-4 border border-white/10"
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Play/Stop Button */}
-                      <button
-                        onClick={() => toggleStreaming(agent.id)}
-                        className={`p-3 rounded-lg transition-all ${
-                          streamingAgents[agent.id]
-                            ? 'bg-red-500 hover:bg-red-600'
-                            : 'bg-gradient-to-br from-orange-500 to-pink-500 hover:shadow-lg hover:shadow-orange-500/30'
-                        }`}
-                      >
-                        {streamingAgents[agent.id] ? (
-                          <div className="w-3.5 h-3.5 bg-white rounded-sm"></div>
-                        ) : (
-                          <PlayCircle size={20} className="text-white" />
-                        )}
-                      </button>
-
-                      {/* Agent Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className={`w-2 h-2 rounded-full ${agent.status === 'online' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                          <span className={`text-xs font-semibold ${agent.status === 'online' ? 'text-green-400' : 'text-gray-400'}`}>
-                            {streamingAgents[agent.id] ? 'Streaming' : agent.status === 'online' ? 'Not Streaming' : 'Offline'}
-                          </span>
-                        </div>
-                        
-                        <h3 className="font-bold text-sm mb-1">{agent.name}</h3>
-                        <p className="text-xs text-gray-400 mb-2">User-Name: {agent.username}</p>
-                        
-                        <div className="flex items-center gap-4 text-xs">
-                          <div>
-                            <span className="text-gray-400">Branch: </span>
-                            <span className="text-blue-400 font-semibold">{agent.branch}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">Department: </span>
-                            <span className="text-blue-400 font-semibold">{agent.department}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Settings Icon */}
-                      <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                        <Settings size={16} className="text-blue-400" />
-                      </button>
+                    <div className="absolute inset-0 flex items-center px-2">
+                      {Array.from({ length: 150 }).map((_, i) => {
+                        const progress = (currentTime / duration) * 150;
+                        const isPassed = i < progress;
+                        return (
+                          <div
+                            key={i}
+                            className={`flex-1 mx-px rounded-full transition-all duration-100 ${
+                              isPassed 
+                                ? 'bg-gradient-to-t from-orange-500 to-pink-500 opacity-90' 
+                                : 'bg-gradient-to-t from-gray-600 to-gray-500 opacity-40'
+                            }`}
+                            style={{
+                              height: `${20 + Math.abs(Math.sin(i * 0.2) * 70)}%`,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Current Time Indicator */}
+                    <div 
+                      className="absolute top-0 bottom-0 w-0.5 bg-orange-400 shadow-lg shadow-orange-500/50"
+                      style={{ left: `${(currentTime / duration) * 100}%` }}
+                    >
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-orange-400 rounded-full shadow-lg shadow-orange-500/50" />
                     </div>
 
-                    {/* Streaming Status Bar */}
-                    {streamingAgents[agent.id] && (
-                      <div className="mt-3 pt-3 border-t border-white/10">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="flex gap-1">
-                              <div className="w-1 h-4 bg-orange-500 rounded animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                              <div className="w-1 h-4 bg-orange-500 rounded animate-pulse" style={{ animationDelay: '150ms' }}></div>
-                              <div className="w-1 h-4 bg-orange-500 rounded animate-pulse" style={{ animationDelay: '300ms' }}></div>
-                              <div className="w-1 h-4 bg-orange-500 rounded animate-pulse" style={{ animationDelay: '450ms' }}></div>
-                            </div>
-                            <span className="text-xs text-orange-400 font-semibold">Live Audio</span>
-                          </div>
-                          <span className="text-xs text-gray-400 font-mono">00:{String(Math.floor(Math.random() * 60)).padStart(2, '0')}</span>
-                        </div>
+                    {/* Current Transcript Overlay */}
+                    {currentTranscript && (
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm px-4 py-2 rounded-lg border border-orange-500/30 max-w-md">
+                        <div className="text-xs text-orange-400 font-semibold mb-1">{currentTranscript.speaker}</div>
+                        <div className="text-sm">{currentTranscript.text}</div>
                       </div>
                     )}
                   </div>
-                ))}
+
+                  {/* Controls */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => setCurrentTime(Math.max(0, currentTime - 10))}
+                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      >
+                        <SkipBack size={20} />
+                      </button>
+                      
+                      <button
+                        onClick={togglePlay}
+                        className="p-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full hover:shadow-lg hover:shadow-orange-500/50 transition-all"
+                      >
+                        {isPlaying ? <Pause size={24} className="text-white" /> : <PlayCircle size={24} className="text-white" />}
+                      </button>
+                      
+                      <button
+                        onClick={() => setCurrentTime(Math.min(duration, currentTime + 10))}
+                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      >
+                        <SkipForward size={20} />
+                      </button>
+
+                      <div className="flex items-center gap-2 ml-4">
+                        <Volume2 size={18} className="text-gray-400" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={volume}
+                          onChange={(e) => setVolume(parseFloat(e.target.value))}
+                          className="w-24"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-400">Speed:</span>
+                        {[0.5, 1, 1.5, 2].map(speed => (
+                          <button
+                            key={speed}
+                            onClick={() => setPlaybackRate(speed)}
+                            className={`px-3 py-1 rounded-lg text-sm transition-all ${
+                              playbackRate === speed
+                                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                            }`}
+                          >
+                            {speed}x
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <div className="text-sm font-mono">
+                        <span className="text-orange-400">{formatTime(currentTime)}</span>
+                        <span className="text-gray-600 mx-1">/</span>
+                        <span className="text-gray-400">{formatTime(duration)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex items-center gap-1 px-6 pt-4 border-b border-white/10">
+                  <button
+                    onClick={() => setActiveTranscriptTab('transcript')}
+                    className={`px-4 py-2 rounded-t-lg transition-all ${
+                      activeTranscriptTab === 'transcript'
+                        ? 'bg-white/10 text-white border-t-2 border-orange-500'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Transcript
+                  </button>
+                  <button
+                    onClick={() => setActiveTranscriptTab('summary')}
+                    className={`px-4 py-2 rounded-t-lg transition-all ${
+                      activeTranscriptTab === 'summary'
+                        ? 'bg-white/10 text-white border-t-2 border-orange-500'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Summary
+                  </button>
+                  <button
+                    onClick={() => setActiveTranscriptTab('insights')}
+                    className={`px-4 py-2 rounded-t-lg transition-all ${
+                      activeTranscriptTab === 'insights'
+                        ? 'bg-white/10 text-white border-t-2 border-orange-500'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Insights
+                  </button>
+                </div>
+
+                {/* Transcript Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  {activeTranscriptTab === 'transcript' && (
+                    <div className="space-y-4">
+                      {selectedRecording.transcript.map((item, index) => {
+                        const itemTime = parseInt(item.time.split(':')[0]) * 60 + parseInt(item.time.split(':')[1]);
+                        const isActive = currentTime >= itemTime && currentTime <= (parseInt(item.endTime.split(':')[0]) * 60 + parseInt(item.endTime.split(':')[1]));
+                        
+                        return (
+                          <div 
+                            key={index}
+                            onClick={() => setCurrentTime(itemTime)}
+                            className={`flex gap-4 p-4 rounded-xl transition-all cursor-pointer ${
+                              isActive 
+                                ? 'bg-orange-500/10 border border-orange-500/30 shadow-lg' 
+                                : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                            }`}
+                          >
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                              item.speaker === 'Agent' 
+                                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' 
+                                : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                            }`}>
+                              {item.speaker === 'Agent' ? 'A' : 'C'}
+                            </div>
+                            
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-sm font-semibold">{item.speaker}</span>
+                                <span className="text-xs text-gray-400 font-mono">{item.time} - {item.endTime}</span>
+                                {item.sentiment && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    item.sentiment === 'positive' ? 'bg-green-500/20 text-green-400' :
+                                    item.sentiment === 'negative' ? 'bg-red-500/20 text-red-400' :
+                                    'bg-gray-500/20 text-gray-400'
+                                  }`}>
+                                    {item.sentiment}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-200 leading-relaxed">{item.text}</p>
+                              <button className="mt-2 text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1">
+                                <Edit2 size={12} />
+                                Edit
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {activeTranscriptTab === 'summary' && (
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-6">
+                        <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                          <MessageSquare size={20} className="text-blue-400" />
+                          Call Summary
+                        </h3>
+                        <p className="text-gray-300 leading-relaxed">{selectedRecording.callSummary}</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                          <div className="text-sm text-gray-400 mb-1">Call Duration</div>
+                          <div className="text-2xl font-bold text-blue-400">{selectedRecording.duration}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                          <div className="text-sm text-gray-400 mb-1">Total Words</div>
+                          <div className="text-2xl font-bold text-purple-400">{selectedRecording.totalWords}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                          <div className="text-sm text-gray-400 mb-1">Accuracy</div>
+                          <div className="text-2xl font-bold text-green-400">{selectedRecording.accuracy}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                          <div className="text-sm text-gray-400 mb-1">Quality Score</div>
+                          <div className="text-2xl font-bold text-orange-400">{selectedRecording.average}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTranscriptTab === 'insights' && (
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-br from-orange-500/10 to-pink-500/10 border border-orange-500/20 rounded-xl p-6">
+                        <h3 className="text-lg font-bold mb-4">Key Insights</h3>
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            <ThumbsUp size={18} className="text-green-400 mt-0.5" />
+                            <div>
+                              <div className="font-semibold text-green-400 mb-1">Positive Aspects</div>
+                              <p className="text-sm text-gray-300">Professional greeting and clear communication throughout the call.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <AlertCircle size={18} className="text-orange-400 mt-0.5" />
+                            <div>
+                              <div className="font-semibold text-orange-400 mb-1">Areas for Improvement</div>
+                              <p className="text-sm text-gray-300">Could have provided more proactive information to the customer.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                        <h4 className="font-semibold mb-3">Conversation Flow</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <span className="text-gray-300">Opening: Professional</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                            <span className="text-gray-300">Middle: Efficient</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <span className="text-gray-300">Closing: Satisfactory</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {filteredAgents.length === 0 && (
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-12 border border-white/10 text-center">
-                  <Users size={48} className="mx-auto mb-4 text-gray-600" />
-                  <h3 className="text-lg font-bold mb-2">No Agents Found</h3>
-                  <p className="text-sm text-gray-400">Try adjusting your filters or search criteria</p>
+              {/* Right Side - Scoring & Rating */}
+              <div className="w-[400px] border-l border-white/10 flex flex-col overflow-hidden bg-slate-900/30">
+                
+                {/* Score Header */}
+                <div className="p-6 border-b border-white/10 bg-gradient-to-br from-orange-500/10 to-pink-500/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="text-sm text-gray-400 mb-1">Overall Quality Score</div>
+                      <div className={`text-4xl font-bold ${
+                        parseFloat(selectedRecording.average) >= 70 ? 'text-green-400' :
+                        parseFloat(selectedRecording.average) >= 50 ? 'text-orange-400' :
+                        'text-red-400'
+                      }`}>
+                        {selectedRecording.average}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-400 mb-2">Compliance</div>
+                      <div className="flex gap-2">
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
+                          selectedRecording.conversion === 'Yes' 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          Conv: {selectedRecording.conversion}
+                        </span>
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
+                          selectedRecording.compliance === 'Yes' 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : selectedRecording.compliance === 'No'
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          Comp: {selectedRecording.compliance}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Review based on Gemini - 20/01/24 7:03 am
+                  </div>
                 </div>
-              )}
+
+                {/* Scoring Criteria */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">Evaluation Criteria</h3>
+                  
+                  <div className="space-y-4">
+                    {selectedRecording.scores.map((score, index) => (
+                      <div 
+                        key={index}
+                        className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-orange-500/30 transition-all"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h4 className="text-sm font-semibold mb-1">{score.name}</h4>
+                            <p className="text-xs text-gray-400">{score.feedback}</p>
+                          </div>
+                          <button className="text-xs text-orange-400 hover:text-orange-300 ml-2">
+                            Review
+                          </button>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex gap-1">
+                            {Array.from({ length: score.outOf }).map((_, i) => (
+                              <Star
+                                key={i}
+                                size={18}
+                                className={`transition-all ${
+                                  i < (score.rating === 'N/A' ? 0 : score.rating)
+                                    ? `fill-${score.color}-400 text-${score.color}-400`
+                                    : 'text-gray-700'
+                                }`}
+                                style={{
+                                  fill: i < (score.rating === 'N/A' ? 0 : score.rating) ? 'currentColor' : 'none'
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <span className={`text-sm font-bold ${
+                            score.rating === 'N/A' 
+                              ? 'text-gray-400' 
+                              : score.color === 'green' ? 'text-green-400' :
+                                score.color === 'blue' ? 'text-blue-400' :
+                                score.color === 'orange' ? 'text-orange-400' :
+                                score.color === 'purple' ? 'text-purple-400' :
+                                'text-gray-400'
+                          }`}>
+                            {score.rating === 'N/A' ? 'N/A' : `${score.rating}/${score.outOf}`}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Transcription Stats */}
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">Transcription Quality</h3>
+                    
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-lg p-3 text-center border border-blue-500/20">
+                        <div className="text-2xl font-bold text-blue-400">{selectedRecording.totalWords}</div>
+                        <div className="text-xs text-gray-400 mt-1">Total Words</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-lg p-3 text-center border border-orange-500/20">
+                        <div className="text-2xl font-bold text-orange-400">{selectedRecording.wordsChanged}</div>
+                        <div className="text-xs text-gray-400 mt-1">Edited</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg p-3 text-center border border-green-500/20">
+                        <div className="text-2xl font-bold text-green-400">{selectedRecording.accuracy}</div>
+                        <div className="text-xs text-gray-400 mt-1">Accuracy</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Comments Section */}
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">Add Your Review</h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs text-gray-400 mb-2 block">Suggest Rating *</label>
+                        <select className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                          <option>Select rating...</option>
+                          <option>⭐ 1 - Poor</option>
+                          <option>⭐⭐ 2 - Below Average</option>
+                          <option>⭐⭐⭐ 3 - Average</option>
+                          <option>⭐⭐⭐⭐ 4 - Good</option>
+                          <option>⭐⭐⭐⭐⭐ 5 - Excellent</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-xs text-gray-400 mb-2 block">Add Comments *</label>
+                        <textarea
+                          className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                          rows={4}
+                          placeholder="Share your feedback about this call..."
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-2">
+                        <button className="text-sm text-orange-400 hover:text-orange-300 transition-colors">
+                          View all comments →
+                        </button>
+                        <button className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold">
+                          Submit Review
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-12 border border-white/10 text-center">
-              <h2 className="text-2xl font-bold mb-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
-              <p className="text-gray-400">This section is under development</p>
-            </div>
-          )}
-        </main>
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ModernAudiofyDashboard;
+export default RecordingsPage;

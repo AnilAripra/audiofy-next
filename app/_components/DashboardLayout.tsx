@@ -17,6 +17,7 @@ import {
   X,
   Sun,
   Moon,
+  PhoneCall,
 } from "lucide-react";
 import { format } from "date-fns";
 import DateRangePicker from "./DateRangePicker";
@@ -28,6 +29,7 @@ const navItems = [
   { label: "Live Stream", href: "/live-stream", icon: Mic },
   { label: "Reports", href: "/reports", icon: FileText },
   { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Recordings", href: "/recordings", icon: PhoneCall  },
 ];
 
 type NavItemProps = {
@@ -95,7 +97,7 @@ export default function DashboardLayout({
     <div className="min-h-screen">
       {/* Mobile Sidebar Overlay */}
       {isMobile && sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
@@ -103,9 +105,11 @@ export default function DashboardLayout({
 
       <aside
         className={`fixed left-0 top-0 h-full theme-panel backdrop-blur-xl border-r transition-all duration-300 z-50 overflow-hidden ${
-          sidebarOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full lg:w-0 lg:-translate-x-full"
+          sidebarOpen
+            ? "w-64 translate-x-0"
+            : "w-0 -translate-x-full lg:w-0 lg:-translate-x-full"
         }`}
-        style={{ borderColor: 'var(--border)' }}
+        style={{ borderColor: "var(--border)" }}
       >
         <div className="p-4 h-full flex flex-col">
           <div className="flex items-center gap-2 mb-6 px-2">
@@ -116,7 +120,7 @@ export default function DashboardLayout({
               Audiofy
             </span>
             {isMobile && (
-              <button 
+              <button
                 onClick={() => setSidebarOpen(false)}
                 className="ml-auto p-1 text-gray-400 hover:text-white"
               >
@@ -139,8 +143,13 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <div className={`transition-all duration-300 ${sidebarOpen && !isMobile ? "ml-64" : "ml-0"}`}>
-        <header className="theme-panel sticky top-0 z-30 border-b" style={{ borderColor: 'var(--border)' }}>
+      <div
+        className={`transition-all duration-300 ${sidebarOpen && !isMobile ? "ml-64" : "ml-0"}`}
+      >
+        <header
+          className="theme-panel sticky top-0 z-30 border-b"
+          style={{ borderColor: "var(--border)" }}
+        >
           <div className="px-4 md:px-6 py-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
               <div className="flex items-center gap-3">
@@ -154,10 +163,10 @@ export default function DashboardLayout({
                   {title ?? pathname ?? "Sales Dashboard"}
                 </h1>
               </div>
-              
+
               {/* Mobile Date Picker Toggle or simplified view could go here if needed */}
             </div>
-            
+
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
               <div className="hidden md:block">
                 <DateRangePicker
@@ -171,22 +180,34 @@ export default function DashboardLayout({
                 <div className="relative hidden md:block">
                   <Search
                     className="absolute left-3 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--muted)' }}
+                    style={{ color: "var(--muted)" }}
                     size={16}
                   />
                   <input
                     type="text"
                     placeholder="Search..."
                     className="pl-9 pr-3 py-2 rounded-lg focus:outline-none w-48 text-sm theme-input"
-                    style={{ borderColor: 'var(--border)' }}
+                    style={{ borderColor: "var(--border)" }}
                   />
                 </div>
-                <button className="p-2 rounded-lg transition-colors relative" style={{ background: 'transparent' }}>
+                <button
+                  className="p-2 rounded-lg transition-colors relative"
+                  style={{ background: "transparent" }}
+                >
                   <Bell size={18} />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
                 </button>
-                <button onClick={toggleTheme} title="Toggle theme" className="p-2 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center" style={{ background: 'transparent' }}>
-                  {theme === 'light' ? <Sun size={18} style={{ color: 'var(--muted)' }} /> : <Moon size={18} style={{ color: 'var(--muted)' }} />}
+                <button
+                  onClick={toggleTheme}
+                  title="Toggle theme"
+                  className="p-2 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                  style={{ background: "transparent" }}
+                >
+                  {theme === "light" ? (
+                    <Sun size={18} style={{ color: "var(--muted)" }} />
+                  ) : (
+                    <Moon size={18} style={{ color: "var(--muted)" }} />
+                  )}
                 </button>
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0">
                   AA
