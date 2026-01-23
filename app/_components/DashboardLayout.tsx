@@ -92,6 +92,10 @@ export default function DashboardLayout({
   };
   const [range, setRange] = useState([defaultRange]);
   const pathname = usePathname();
+  // keep the First letter capital
+  let pageTitle: string = title ?? pathname.split("/").pop() ?? "";
+  pageTitle = pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1);
+
 
   return (
     <div className="min-h-screen">
@@ -160,7 +164,7 @@ export default function DashboardLayout({
                   {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
                 <h1 className="text-xl font-bold truncate">
-                  {title ?? pathname ?? "Sales Dashboard"}
+                  {pageTitle}
                 </h1>
               </div>
 

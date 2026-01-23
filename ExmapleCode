@@ -1,994 +1,583 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Filter, RotateCcw, X, PlayCircle, Phone, Clock, User, Building, ChevronLeft, ChevronRight, Edit2, MessageSquare, Star, Pause, SkipBack, SkipForward, Volume2, Download, Share2, Maximize2, Minimize2, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Plus, Edit2, Trash2, X, Download, Upload, ChevronDown, ChevronRight, Star, Save, ArrowLeft } from 'lucide-react';
 
-const RecordingsPage = () => {
-  const [activeTab, setActiveTab] = useState('DS Recordings');
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [selectedRecording, setSelectedRecording] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(180);
-  const [volume, setVolume] = useState(0.8);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [activeTranscriptTab, setActiveTranscriptTab] = useState('transcript');
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const audioRef = useRef(null);
-  const waveformRef = useRef(null);
-  
-  const [quickFilters, setQuickFilters] = useState({
-    today: false,
-    yesterday: false,
-    last7Days: false,
-    thisMonth: false,
-    uploaded: false,
-    transcribed: false,
-    rated: false,
-    commented: false,
-    notCommented: false,
-    conversionCalls: false,
-    nonCompliant: false,
-    horizon: false,
-    xBees: false,
-  });
+const SettingsPage = () => {
+  const [activeTab, setActiveTab] = useState('Call Type');
+  const [selectedCallType, setSelectedCallType] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingCallType, setEditingCallType] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedRows, setExpandedRows] = useState({});
 
-  const recordings = [
+  const callTypes = [
     {
       id: 1,
-      userName: 'Nazmul Chowdhur',
-      department: 'Sales',
-      userNo: '+441923609482',
-      otherParty: '+447760984398',
-      duration: '0:56',
-      connectTime: '19/01/26 8:55 pm',
-      callType: 'Outbound Sales Lead',
-      callStatus: 'OUT',
-      statusBg: 'Being Completed',
-      platform: 'Cairoplanet',
-      branch: 'Barnet',
-      conversion: 'No',
-      compliance: 'N/A',
-      average: '20.00%',
-      comments: 'N/A',
-      recordingSource: 'X-Bees',
-      updatedAt: '19/01/2026',
-      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      transcript: [
-        { speaker: 'Agent', time: '00:03', endTime: '00:05', text: 'Hello, Mad Planner Watford. Zak speaking.', sentiment: 'neutral' },
-        { speaker: 'Agent', time: '00:05', endTime: '00:06', text: 'How can I help you?', sentiment: 'positive' },
-        { speaker: 'Customer', time: '00:06', endTime: '00:07', text: 'Oh, hello', sentiment: 'neutral' },
-        { speaker: 'Customer', time: '00:07', endTime: '00:10', text: "I'm trying to get through to the Barnet site.", sentiment: 'neutral' },
-        { speaker: 'Agent', time: '00:10', endTime: '00:13', text: 'Certainly, let me transfer your call right away.', sentiment: 'positive' },
-        { speaker: 'Customer', time: '00:13', endTime: '00:15', text: 'Thank you so much!', sentiment: 'positive' },
+      callType: 'Aftersales - External Garage Communication',
+      direction: 'Both',
+      departments: ['Aftersales', 'Aftersales Management'],
+      category: 'Aftersales Communication',
+      weighting: 5,
+      eligibleForConversion: true,
+      conversionDefinition: "When a customer's vehicle needs to be scheduled for repair, inspection, or service at either an internal (in-house) or external (partner) garage. The goal is to secure a confirmed booking efficiently, ensuring the customer is informed of the location, date, and time. The agent should match the issue with the appropriate garage, explain what will happen during the visit, and reassure the customer that the matter is being handled promptly.",
+      complianceDefinition: "This is an aftersales call initiated by the dealership to an external garage regarding a customer's vehicle repair or service. Evaluate whether the agent communicates accurately and responsibly when discussing the customer's vehicle, work required, costs, and timescales. Check that the agent does not misrepresent customer approval, authorisation, or responsibility for costs, and that any additional work or delays are clearly identified as subject to customer confirmation.",
+      whatToListenFor: "This call will be salesperson-initiated, where the agent is reaching out to an external garage or service provider regarding a customer's vehicle repair, maintenance, or service request. The focus is on obtaining status updates, coordinating service timelines, and ensuring smooth communication between all parties. Listen for key details such as the repair progress, estimated completion time, any additional work required, and any costs involved.",
+      scoringGuides: [
+        {
+          id: 1,
+          order: 1,
+          color: '#2196F3',
+          categoryTitle: 'Greeting & Introduction',
+          categoryDescription: 'Greeting & Introduction',
+          scores: [
+            { level: 0, description: 'No greeting or introduction provided.' },
+            { level: 1, description: 'Basic greeting but lacks professionalism or clarity.' },
+            { level: 2, description: 'Professional greeting with clear identification.' },
+            { level: 3, description: 'Excellent greeting, identification, and rapport building.' },
+          ],
+        },
+        {
+          id: 2,
+          order: 2,
+          color: '#9C27B0',
+          categoryTitle: 'Information Gathering',
+          categoryDescription: 'Information Gathering',
+          scores: [
+            { level: 0, description: 'Does not gather necessary information.' },
+            { level: 1, description: 'Gathers some information but misses key details.' },
+            { level: 2, description: 'Gathers most required information effectively.' },
+            { level: 3, description: 'Thoroughly gathers all necessary information with follow-up questions.' },
+          ],
+        },
+        {
+          id: 3,
+          order: 3,
+          color: '#FF9800',
+          categoryTitle: 'Communication & Clarity',
+          categoryDescription: 'Communication & Clarity',
+          scores: [
+            { level: 0, description: 'Communication is unclear or confusing.' },
+            { level: 1, description: 'Communicates basic information but lacks clarity.' },
+            { level: 2, description: 'Clear communication with good explanation.' },
+            { level: 3, description: 'Exceptional clarity, confirms understanding throughout.' },
+          ],
+        },
+        {
+          id: 4,
+          order: 4,
+          color: '#E91E63',
+          categoryTitle: 'Confirming Next Steps & Follow-Up Plan',
+          categoryDescription: 'Confirming Next Steps & Follow-Up Plan',
+          scores: [
+            { level: 0, description: 'Does not confirm next steps at all, leaving uncertainty.' },
+            { level: 1, description: 'Mentions next steps but does not confirm or document them.' },
+            { level: 2, description: 'Provides clear next steps but does not verify understanding with the garage.' },
+            { level: 3, description: 'Ensures the garage fully understands the next steps and confirms the follow-up plan.' },
+            { level: 4, description: 'Confirms follow up plan and required timeline.' },
+          ],
+        },
+        {
+          id: 5,
+          order: 5,
+          color: '#4CAF50',
+          categoryTitle: 'Professionalism & Collaboration',
+          categoryDescription: 'Professionalism & Collaboration',
+          scores: [
+            { level: 0, description: 'Unprofessional, rude, or uncooperative.' },
+            { level: 1, description: 'Polite but lacks collaboration or engagement.' },
+            { level: 2, description: 'Professional and cooperative, ensuring smooth communication.' },
+            { level: 3, description: 'Highly professional with excellent collaborative approach.' },
+          ],
+        },
       ],
-      scores: [
-        { name: 'Communication with Receiving Agent', rating: 'N/A', outOf: 3, color: 'gray', feedback: 'Not applicable for this call type' },
-        { name: 'Clean Language', rating: 3, outOf: 3, color: 'green', feedback: 'Excellent professional language throughout' },
-        { name: 'Greeting & Introduction', rating: 3, outOf: 3, color: 'green', feedback: 'Perfect greeting and identification' },
-      ],
-      totalWords: 66,
-      wordsChanged: 0,
-      accuracy: '100.00%',
-      callSummary: 'Customer called to be transferred to Barnet location. Agent handled the request professionally with proper greeting and efficient service.',
     },
     {
-      id: 3,
-      userName: 'Omar El Harchaoui',
-      department: 'Call Center - Sales',
-      userNo: '+441923609482',
-      otherParty: '+447844512199',
-      duration: '3:09',
-      connectTime: '19/01/26 8:48 pm',
-      callType: 'Customer Appointment',
-      callStatus: 'IN',
-      statusBg: 'Being Completed',
-      platform: 'Cairoplanet',
-      branch: 'Mega',
-      conversion: 'Yes',
-      compliance: 'Yes',
-      average: '76.00%',
-      comments: 'Great call handling',
-      recordingSource: 'X-Bees',
-      updatedAt: '19/01/2026',
-      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-      transcript: [
-        { speaker: 'Agent', time: '00:00', endTime: '00:04', text: 'MOTORS is connecting you to a sales enquiry', sentiment: 'neutral' },
-        { speaker: 'Customer', time: '00:04', endTime: '00:05', text: 'Hello sir', sentiment: 'positive' },
-        { speaker: 'Agent', time: '00:05', endTime: '00:09', text: 'Is this Watford?', sentiment: 'neutral' },
-        { speaker: 'Agent', time: '00:09', endTime: '00:11', text: 'Yes, this is Watford', sentiment: 'positive' },
-        { speaker: 'Agent', time: '00:11', endTime: '00:15', text: 'How can I help?', sentiment: 'positive' },
-        { speaker: 'Customer', time: '00:15', endTime: '00:22', text: 'Actually, I received a call from your showroom. I work for Iron Tiguan', sentiment: 'neutral' },
-        { speaker: 'Customer', time: '00:22', endTime: '00:25', text: 'And you want a number?', sentiment: 'neutral' },
-        { speaker: 'Customer', time: '00:25', endTime: '00:28', text: 'Yes, can I get a number please?', sentiment: 'positive' },
-        { speaker: 'Customer', time: '00:28', endTime: '00:30', text: 'M167ABK', sentiment: 'neutral' },
+      id: 2,
+      callType: 'Customer Appointment Confirmation',
+      direction: 'Outbound',
+      departments: ['Sales'],
+      category: 'Sales Diary',
+      weighting: 5,
+      eligibleForConversion: true,
+      conversionDefinition: "When a potential customer's appointment is confirmed with all necessary details (time, date, location). The customer agrees to attend and understands what to bring or prepare.",
+      complianceDefinition: "Ensure the agent provides accurate information about the appointment, confirms customer understanding, and does not make false promises about vehicle availability or pricing.",
+      whatToListenFor: "This call is initiated to confirm a scheduled appointment. Listen for clear communication of appointment details, confirmation from customer, and any questions or concerns addressed professionally.",
+      scoringGuides: [
+        {
+          id: 6,
+          order: 1,
+          color: '#2196F3',
+          categoryTitle: 'Greeting & Intro',
+          categoryDescription: 'Greeting & Intro',
+          scores: [
+            { level: 0, description: 'No greeting provided.' },
+            { level: 1, description: 'Basic greeting only.' },
+            { level: 2, description: 'Professional greeting with name and purpose.' },
+            { level: 3, description: 'Excellent greeting, builds rapport immediately.' },
+          ],
+        },
+        {
+          id: 7,
+          order: 2,
+          color: '#FF5722',
+          categoryTitle: 'Appointment Confirmation',
+          categoryDescription: 'Appointment Confirmation',
+          scores: [
+            { level: 0, description: 'Fails to confirm appointment details.' },
+            { level: 1, description: 'Confirms some details but misses important information.' },
+            { level: 2, description: 'Confirms all key appointment details clearly.' },
+            { level: 3, description: 'Thoroughly confirms all details and customer understanding.' },
+          ],
+        },
       ],
-      scores: [
-        { name: 'Greeting & Intro', rating: 3, outOf: 5, color: 'blue', feedback: 'Good introduction, could be more enthusiastic' },
-        { name: 'Cancellation Handling', rating: 4, outOf: 5, color: 'green', feedback: 'Handled customer concerns effectively' },
-        { name: 'Handling Customer Concerns', rating: 4, outOf: 5, color: 'green', feedback: 'Addressed all questions professionally' },
-        { name: 'Rescheduling / Next Steps', rating: 4, outOf: 5, color: 'green', feedback: 'Clear next steps provided' },
-        { name: 'Customer Satisfaction & Closing', rating: 4, outOf: 5, color: 'green', feedback: 'Good closing, ensured customer satisfaction' },
-      ],
-      totalWords: 341,
-      wordsChanged: 0,
-      accuracy: '100.00%',
-      callSummary: 'Customer inquiry about a vehicle (M167ABK). Agent successfully handled the enquiry, provided information, and ensured customer satisfaction. Appointment scheduled for follow-up.',
     },
   ];
 
-  useEffect(() => {
-    let interval;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime(prev => {
-          if (prev >= duration) {
-            setIsPlaying(false);
-            return duration;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, duration]);
+  const departments = [
+    { id: 1, name: 'Aftersales' },
+    { id: 2, name: 'Aftersales Management' },
+    { id: 3, name: 'Sales' },
+    { id: 4, name: 'Buying' },
+    { id: 5, name: 'Call Center' },
+  ];
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const tabs = [
+    'Call Type',
+    'Account Settings',
+    'Prompt Review',
+    'Direct Reports',
+    'Call Type Dashboard',
+    'Departments',
+    'Unlinked External Users',
+    'SAR',
+  ];
 
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleSeek = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = x / rect.width;
-    setCurrentTime(Math.floor(percentage * duration));
-  };
-
-  const toggleQuickFilter = (filter) => {
-    setQuickFilters(prev => ({
+  const toggleRow = (id) => {
+    setExpandedRows(prev => ({
       ...prev,
-      [filter]: !prev[filter]
+      [id]: !prev[id]
     }));
   };
 
-  const getCurrentTranscript = () => {
-    if (!selectedRecording) return null;
-    return selectedRecording.transcript.find(t => {
-      const time = parseInt(t.time.split(':')[0]) * 60 + parseInt(t.time.split(':')[1]);
-      const endTime = parseInt(t.endTime.split(':')[0]) * 60 + parseInt(t.endTime.split(':')[1]);
-      return currentTime >= time && currentTime <= endTime;
-    });
+  const openCallTypeDetail = (callType) => {
+    setSelectedCallType(callType);
   };
 
-  const currentTranscript = getCurrentTranscript();
+  const addNewScoringGuide = () => {
+    const newGuide = {
+      id: Date.now(),
+      order: selectedCallType.scoringGuides.length + 1,
+      color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+      categoryTitle: '',
+      categoryDescription: '',
+      scores: [
+        { level: 0, description: '' },
+        { level: 1, description: '' },
+        { level: 2, description: '' },
+      ],
+    };
+    // In real app, would update the state properly
+  };
+
+  const deleteScoringGuide = (guideId) => {
+    // In real app, would remove from state
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Recording History</h1>
-        <div className="flex items-center gap-4 text-sm">
-          <button
-            onClick={() => setActiveTab('DS Recordings')}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              activeTab === 'DS Recordings'
-                ? 'text-orange-400 border-b-2 border-orange-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            DS Recordings
-          </button>
-          <button
-            onClick={() => setActiveTab('Horizon Voice Calls')}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              activeTab === 'Horizon Voice Calls'
-                ? 'text-orange-400 border-b-2 border-orange-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Horizon Voice Calls
-          </button>
-          <button
-            onClick={() => setActiveTab('Failed transcriptions')}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              activeTab === 'Failed transcriptions'
-                ? 'text-orange-400 border-b-2 border-orange-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Failed transcriptions
-          </button>
+        <h1 className="text-2xl font-bold mb-4">Settings</h1>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b border-white/10 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-3 text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab
+                  ? 'text-orange-400 border-b-2 border-orange-400 bg-white/5'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Filters Bar */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 mb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[250px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search by user no. & other party no..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm"
-            />
-          </div>
-          
-          <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors">
-            Date Range
-          </button>
-          
-          <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors">
-            Review Date Range
-          </button>
-          
-          <button
-            onClick={() => setShowAdvancedFilters(true)}
-            className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold flex items-center gap-2"
-          >
-            <Filter size={16} />
-            More Filters
-          </button>
-          
-          <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors flex items-center gap-2">
-            <RotateCcw size={16} />
-            Reset
-          </button>
-        </div>
-      </div>
+      {/* Call Type Tab */}
+      {activeTab === 'Call Type' && !selectedCallType && (
+        <div className="space-y-4">
+          {/* Filters & Actions */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <div className="relative flex-1 min-w-[250px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search by Call Type"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm"
+              />
+            </div>
 
-      {/* Recordings Table */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 border-b border-white/10">
-              <tr>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">User Name</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Department</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">User No.</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Other Party No.</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Duration</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Connect Time</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Call Type</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Call Status</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Platform</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Branch</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Conversion</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Compliance</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Average</th>
-                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-300">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recordings.map((record) => (
-                <tr
-                  key={record.id}
-                  onClick={() => {
-                    setSelectedRecording(record);
-                    setCurrentTime(0);
-                    setIsPlaying(false);
-                    setDuration(parseInt(record.duration.split(':')[0]) * 60 + parseInt(record.duration.split(':')[1]));
-                  }}
-                  className="border-b border-white/5 hover:bg-white/10 transition-colors cursor-pointer"
-                >
-                  <td className="py-3 px-3">{record.userName}</td>
-                  <td className="py-3 px-3 text-gray-300">{record.department}</td>
-                  <td className="py-3 px-3 text-gray-400 font-mono text-xs">{record.userNo}</td>
-                  <td className="py-3 px-3">
-                    <div className="flex items-center gap-2">
-                      <Phone size={14} className="text-orange-400" />
-                      <span className="font-mono text-xs">{record.otherParty}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-3">{record.duration}</td>
-                  <td className="py-3 px-3 text-gray-400 text-xs">{record.connectTime}</td>
-                  <td className="py-3 px-3">{record.callType}</td>
-                  <td className="py-3 px-3">
-                    <div className="flex flex-col gap-1">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold text-center ${
-                        record.callStatus === 'OUT' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'
-                      }`}>
-                        {record.callStatus}
-                      </span>
-                      <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-semibold text-center">
-                        {record.statusBg}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-3">
-                    <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-semibold">
-                      {record.platform}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3">{record.branch}</td>
-                  <td className="py-3 px-3">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      record.conversion === 'Yes' ? 'bg-green-500/20 text-green-400' :
-                      record.conversion === 'No' ? 'bg-red-500/20 text-red-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {record.conversion}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      record.compliance === 'Yes' ? 'bg-green-500/20 text-green-400' :
-                      record.compliance === 'No' ? 'bg-red-500/20 text-red-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {record.compliance}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3">
-                    <span className={`font-bold ${
-                      parseFloat(record.average) >= 70 ? 'text-green-400' :
-                      parseFloat(record.average) >= 50 ? 'text-orange-400' :
-                      'text-red-400'
-                    }`}>
-                      {record.average}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3">
-                    <button className="p-2 hover:bg-orange-500/20 rounded-lg transition-colors">
-                      <PlayCircle size={18} className="text-orange-400" />
-                    </button>
-                  </td>
-                </tr>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+            >
+              <option value="">Select Department</option>
+              {departments.map(dept => (
+                <option key={dept.id} value={dept.name}>{dept.name}</option>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between p-4 border-t border-white/10">
-          <div className="text-sm text-gray-400">
-            1 to 25 of 7,006 Calls
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400">Page 01 of 281</span>
-            <div className="flex gap-2">
-              <button className="p-2 bg-orange-500/20 text-orange-400 rounded-lg hover:bg-orange-500/30 transition-colors">
-                <ChevronLeft size={16} />
-              </button>
-              <button className="p-2 bg-orange-500/20 text-orange-400 rounded-lg hover:bg-orange-500/30 transition-colors">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-            <select className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm">
-              <option>25 Rows</option>
-              <option>50 Rows</option>
-              <option>100 Rows</option>
             </select>
+
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Add New Call Type
+            </button>
+
+            <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors flex items-center gap-2">
+              <Upload size={16} />
+              Import CSV
+            </button>
+
+            <button className="p-2.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+              <Download size={18} className="text-orange-400" />
+            </button>
           </div>
-        </div>
-      </div>
 
-      {/* Advanced Filters Modal */}
-      {showAdvancedFilters && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-xl border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
-              <h2 className="text-xl font-bold">Advanced Filters</h2>
-              <button
-                onClick={() => setShowAdvancedFilters(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
+          {/* Call Types Table */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 border-b border-white/10">
+                  <tr>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300 w-12"></th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Call Type</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Direction</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Departments</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Category</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Weighting</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Conversion</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Scoring Guides</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-300">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {callTypes.map((callType) => (
+                    <React.Fragment key={callType.id}>
+                      <tr className="border-b border-white/5 hover:bg-white/10 transition-colors">
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => toggleRow(callType.id)}
+                            className="p-1 hover:bg-white/10 rounded transition-colors"
+                          >
+                            {expandedRows[callType.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        </td>
+                        <td className="py-3 px-4 font-medium">{callType.callType}</td>
+                        <td className="py-3 px-4 text-gray-300">{callType.direction}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap items-center gap-1">
+                            {callType.departments.slice(0, 2).map((dept, idx) => (
+                              <span key={idx} className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
+                                {dept}
+                              </span>
+                            ))}
+                            {callType.departments.length > 2 && (
+                              <span className="text-xs text-orange-400">+{callType.departments.length - 2}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-300">{callType.category}</td>
+                        <td className="py-3 px-4 font-semibold">{callType.weighting}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${callType.eligibleForConversion ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                            }`}>
+                            {callType.eligibleForConversion ? 'Yes' : 'No'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-blue-400 font-semibold">{callType.scoringGuides.length}</span>
+                            <span className="text-gray-500 text-xs">criteria</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openCallTypeDetail(callType)}
+                              className="p-2 hover:bg-blue-500/20 rounded-lg transition-colors"
+                              title="View & Edit Details"
+                            >
+                              <Edit2 size={16} className="text-blue-400" />
+                            </button>
+                            <button className="p-2 hover:bg-red-500/20 rounded-lg transition-colors">
+                              <Trash2 size={16} className="text-red-400" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
 
-            <div className="p-6">
-              {/* Quick Filters */}
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3">Quick Filters</h3>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries({
-                    today: 'Today',
-                    yesterday: 'Yesterday',
-                    last7Days: 'Last 7 Days',
-                    thisMonth: 'This Month',
-                    uploaded: 'Uploaded',
-                    transcribed: 'Transcribed',
-                    rated: 'Rated',
-                    commented: 'Commented',
-                    notCommented: 'Not Commented',
-                    conversionCalls: 'Conversion Calls',
-                    nonCompliant: 'Non-Compliant',
-                    horizon: 'Horizon',
-                    xBees: 'X-Bees',
-                  }).map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => toggleQuickFilter(key)}
-                      className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                        quickFilters[key]
-                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white'
-                          : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                      }`}
-                    >
-                      {label}
-                    </button>
+                      {/* Expanded Row - Quick Preview */}
+                      {expandedRows[callType.id] && (
+                        <tr className="bg-slate-800/30">
+                          <td colSpan="9" className="p-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-400 mb-2">What to Listen For</h4>
+                                <p className="text-sm text-gray-300 line-clamp-3">{callType.whatToListenFor}</p>
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-400 mb-2">Scoring Criteria</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {callType.scoringGuides.map((guide) => (
+                                    <div
+                                      key={guide.id}
+                                      className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2"
+                                      style={{ backgroundColor: guide.color + '20', color: guide.color }}
+                                    >
+                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: guide.color }}></div>
+                                      {guide.categoryTitle}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => openCallTypeDetail(callType)}
+                              className="mt-3 text-sm text-orange-400 hover:text-orange-300 flex items-center gap-1"
+                            >
+                              View Full Details & Manage Scoring
+                              <ChevronRight size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
-                </div>
-              </div>
-
-              {/* Dropdown Filters */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Select User</option>
-                  <option>Nazmul Chowdhur</option>
-                  <option>Angeline Packy</option>
-                  <option>Omar El Harcha</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Select Branch</option>
-                  <option>Barnet</option>
-                  <option>Watford</option>
-                  <option>Mega</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Select Commented By</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Rating Completed</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Conversion Calls</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Compliance Calls</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Department</option>
-                  <option>Sales</option>
-                  <option>Call Center - Sales</option>
-                  <option>Buying</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Call Type</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Recording Source</option>
-                </select>
-
-                <select className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                  <option>Platform</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-white/10 flex items-center justify-between sticky bottom-0 bg-slate-900">
-              <button className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors">
-                Clear Filters
-              </button>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-400">Total Record Found: 7006</span>
-                <button
-                  onClick={() => setShowAdvancedFilters(false)}
-                  className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold"
-                >
-                  Done
-                </button>
-              </div>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modern Transcription Modal */}
-      {selectedRecording && (
-        <div className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 ${isFullscreen ? 'p-0' : ''}`}>
-          <div className={`bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-white/20 w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl ${isFullscreen ? 'h-screen max-h-screen rounded-none' : 'max-w-[95vw]'}`}>
-            
-            {/* Compact Header */}
-            <div className="px-6 py-4 border-b border-white/10 bg-slate-900/50 backdrop-blur-sm flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
-                  {selectedRecording.userName.split(' ').map(n => n[0]).join('')}
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold">{selectedRecording.userName}</h2>
-                  <div className="flex items-center gap-3 text-sm text-gray-400 mt-1">
-                    <span className="flex items-center gap-1">
-                      <Building size={14} />
-                      {selectedRecording.department}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Phone size={14} />
-                      {selectedRecording.otherParty}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={14} />
-                      {selectedRecording.connectTime}
-                    </span>
-                  </div>
+      {/* Call Type Detail View */}
+      {activeTab === 'Call Type' && selectedCallType && (
+        <div className="space-y-6">
+          {/* Back Button */}
+          <button
+            onClick={() => setSelectedCallType(null)}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft size={18} />
+            Back to Call Types
+          </button>
+
+          {/* Call Type Header */}
+          <div className="bg-gradient-to-r from-orange-500/10 to-pink-500/10 border border-orange-500/20 rounded-xl p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">{selectedCallType.callType}</h2>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg font-medium">
+                    {selectedCallType.direction}
+                  </span>
+                  <span className="text-gray-400">Category: {selectedCallType.category}</span>
+                  <span className="text-gray-400">Weighting: <span className="font-bold text-white">{selectedCallType.weighting}</span></span>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                    selectedRecording.callStatus === 'OUT' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'
-                  }`}>
-                    {selectedRecording.callStatus}
-                  </span>
-                  <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-semibold">
-                    {selectedRecording.platform}
-                  </span>
-                  <span className="text-sm text-gray-400">{selectedRecording.callType}</span>
-                </div>
-                
-                <button 
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-                >
-                  {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                </button>
-                <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                  <Download size={18} />
-                </button>
-                <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                  <Share2 size={18} />
-                </button>
-                <button
-                  onClick={() => setSelectedRecording(null)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+              <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                <Edit2 size={18} className="text-orange-400" />
+              </button>
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 overflow-hidden flex">
-              
-              {/* Left Side - Audio & Transcript */}
-              <div className="flex-1 flex flex-col overflow-hidden">
-                
-                {/* Audio Player Section */}
-                <div className="p-6 border-b border-white/10 bg-gradient-to-b from-slate-800/30 to-transparent">
-                  
-                  {/* Waveform */}
-                  <div 
-                    ref={waveformRef}
-                    onClick={handleSeek}
-                    className="relative h-32 bg-slate-900/80 rounded-xl overflow-hidden cursor-pointer mb-4 border border-white/10"
-                  >
-                    <div className="absolute inset-0 flex items-center px-2">
-                      {Array.from({ length: 150 }).map((_, i) => {
-                        const progress = (currentTime / duration) * 150;
-                        const isPassed = i < progress;
-                        return (
-                          <div
-                            key={i}
-                            className={`flex-1 mx-px rounded-full transition-all duration-100 ${
-                              isPassed 
-                                ? 'bg-gradient-to-t from-orange-500 to-pink-500 opacity-90' 
-                                : 'bg-gradient-to-t from-gray-600 to-gray-500 opacity-40'
-                            }`}
-                            style={{
-                              height: `${20 + Math.abs(Math.sin(i * 0.2) * 70)}%`,
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Current Time Indicator */}
-                    <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-orange-400 shadow-lg shadow-orange-500/50"
-                      style={{ left: `${(currentTime / duration) * 100}%` }}
-                    >
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-orange-400 rounded-full shadow-lg shadow-orange-500/50" />
-                    </div>
-
-                    {/* Current Transcript Overlay */}
-                    {currentTranscript && (
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm px-4 py-2 rounded-lg border border-orange-500/30 max-w-md">
-                        <div className="text-xs text-orange-400 font-semibold mb-1">{currentTranscript.speaker}</div>
-                        <div className="text-sm">{currentTranscript.text}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Controls */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => setCurrentTime(Math.max(0, currentTime - 10))}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                      >
-                        <SkipBack size={20} />
-                      </button>
-                      
-                      <button
-                        onClick={togglePlay}
-                        className="p-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full hover:shadow-lg hover:shadow-orange-500/50 transition-all"
-                      >
-                        {isPlaying ? <Pause size={24} className="text-white" /> : <PlayCircle size={24} className="text-white" />}
-                      </button>
-                      
-                      <button
-                        onClick={() => setCurrentTime(Math.min(duration, currentTime + 10))}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                      >
-                        <SkipForward size={20} />
-                      </button>
-
-                      <div className="flex items-center gap-2 ml-4">
-                        <Volume2 size={18} className="text-gray-400" />
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.1"
-                          value={volume}
-                          onChange={(e) => setVolume(parseFloat(e.target.value))}
-                          className="w-24"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-400">Speed:</span>
-                        {[0.5, 1, 1.5, 2].map(speed => (
-                          <button
-                            key={speed}
-                            onClick={() => setPlaybackRate(speed)}
-                            className={`px-3 py-1 rounded-lg text-sm transition-all ${
-                              playbackRate === speed
-                                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                            }`}
-                          >
-                            {speed}x
-                          </button>
-                        ))}
-                      </div>
-                      
-                      <div className="text-sm font-mono">
-                        <span className="text-orange-400">{formatTime(currentTime)}</span>
-                        <span className="text-gray-600 mx-1">/</span>
-                        <span className="text-gray-400">{formatTime(duration)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex items-center gap-1 px-6 pt-4 border-b border-white/10">
-                  <button
-                    onClick={() => setActiveTranscriptTab('transcript')}
-                    className={`px-4 py-2 rounded-t-lg transition-all ${
-                      activeTranscriptTab === 'transcript'
-                        ? 'bg-white/10 text-white border-t-2 border-orange-500'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    Transcript
-                  </button>
-                  <button
-                    onClick={() => setActiveTranscriptTab('summary')}
-                    className={`px-4 py-2 rounded-t-lg transition-all ${
-                      activeTranscriptTab === 'summary'
-                        ? 'bg-white/10 text-white border-t-2 border-orange-500'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    Summary
-                  </button>
-                  <button
-                    onClick={() => setActiveTranscriptTab('insights')}
-                    className={`px-4 py-2 rounded-t-lg transition-all ${
-                      activeTranscriptTab === 'insights'
-                        ? 'bg-white/10 text-white border-t-2 border-orange-500'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    Insights
-                  </button>
-                </div>
-
-                {/* Transcript Content */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  {activeTranscriptTab === 'transcript' && (
-                    <div className="space-y-4">
-                      {selectedRecording.transcript.map((item, index) => {
-                        const itemTime = parseInt(item.time.split(':')[0]) * 60 + parseInt(item.time.split(':')[1]);
-                        const isActive = currentTime >= itemTime && currentTime <= (parseInt(item.endTime.split(':')[0]) * 60 + parseInt(item.endTime.split(':')[1]));
-                        
-                        return (
-                          <div 
-                            key={index}
-                            onClick={() => setCurrentTime(itemTime)}
-                            className={`flex gap-4 p-4 rounded-xl transition-all cursor-pointer ${
-                              isActive 
-                                ? 'bg-orange-500/10 border border-orange-500/30 shadow-lg' 
-                                : 'bg-white/5 hover:bg-white/10 border border-transparent'
-                            }`}
-                          >
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                              item.speaker === 'Agent' 
-                                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' 
-                                : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                            }`}>
-                              {item.speaker === 'Agent' ? 'A' : 'C'}
-                            </div>
-                            
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <span className="text-sm font-semibold">{item.speaker}</span>
-                                <span className="text-xs text-gray-400 font-mono">{item.time} - {item.endTime}</span>
-                                {item.sentiment && (
-                                  <span className={`text-xs px-2 py-0.5 rounded ${
-                                    item.sentiment === 'positive' ? 'bg-green-500/20 text-green-400' :
-                                    item.sentiment === 'negative' ? 'bg-red-500/20 text-red-400' :
-                                    'bg-gray-500/20 text-gray-400'
-                                  }`}>
-                                    {item.sentiment}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-200 leading-relaxed">{item.text}</p>
-                              <button className="mt-2 text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1">
-                                <Edit2 size={12} />
-                                Edit
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {activeTranscriptTab === 'summary' && (
-                    <div className="space-y-4">
-                      <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-6">
-                        <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
-                          <MessageSquare size={20} className="text-blue-400" />
-                          Call Summary
-                        </h3>
-                        <p className="text-gray-300 leading-relaxed">{selectedRecording.callSummary}</p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                          <div className="text-sm text-gray-400 mb-1">Call Duration</div>
-                          <div className="text-2xl font-bold text-blue-400">{selectedRecording.duration}</div>
-                        </div>
-                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                          <div className="text-sm text-gray-400 mb-1">Total Words</div>
-                          <div className="text-2xl font-bold text-purple-400">{selectedRecording.totalWords}</div>
-                        </div>
-                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                          <div className="text-sm text-gray-400 mb-1">Accuracy</div>
-                          <div className="text-2xl font-bold text-green-400">{selectedRecording.accuracy}</div>
-                        </div>
-                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                          <div className="text-sm text-gray-400 mb-1">Quality Score</div>
-                          <div className="text-2xl font-bold text-orange-400">{selectedRecording.average}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTranscriptTab === 'insights' && (
-                    <div className="space-y-4">
-                      <div className="bg-gradient-to-br from-orange-500/10 to-pink-500/10 border border-orange-500/20 rounded-xl p-6">
-                        <h3 className="text-lg font-bold mb-4">Key Insights</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-3">
-                            <ThumbsUp size={18} className="text-green-400 mt-0.5" />
-                            <div>
-                              <div className="font-semibold text-green-400 mb-1">Positive Aspects</div>
-                              <p className="text-sm text-gray-300">Professional greeting and clear communication throughout the call.</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <AlertCircle size={18} className="text-orange-400 mt-0.5" />
-                            <div>
-                              <div className="font-semibold text-orange-400 mb-1">Areas for Improvement</div>
-                              <p className="text-sm text-gray-300">Could have provided more proactive information to the customer.</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <h4 className="font-semibold mb-3">Conversation Flow</h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="text-gray-300">Opening: Professional</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                            <span className="text-gray-300">Middle: Efficient</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="text-gray-300">Closing: Satisfactory</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white/5 rounded-lg p-3">
+                <div className="text-xs text-gray-400 mb-1">Departments</div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedCallType.departments.map((dept, idx) => (
+                    <span key={idx} className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
+                      {dept}
+                    </span>
+                  ))}
                 </div>
               </div>
-
-              {/* Right Side - Scoring & Rating */}
-              <div className="w-[400px] border-l border-white/10 flex flex-col overflow-hidden bg-slate-900/30">
-                
-                {/* Score Header */}
-                <div className="p-6 border-b border-white/10 bg-gradient-to-br from-orange-500/10 to-pink-500/10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <div className="text-sm text-gray-400 mb-1">Overall Quality Score</div>
-                      <div className={`text-4xl font-bold ${
-                        parseFloat(selectedRecording.average) >= 70 ? 'text-green-400' :
-                        parseFloat(selectedRecording.average) >= 50 ? 'text-orange-400' :
-                        'text-red-400'
-                      }`}>
-                        {selectedRecording.average}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-gray-400 mb-2">Compliance</div>
-                      <div className="flex gap-2">
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                          selectedRecording.conversion === 'Yes' 
-                            ? 'bg-green-500/20 text-green-400' 
-                            : 'bg-red-500/20 text-red-400'
-                        }`}>
-                          Conv: {selectedRecording.conversion}
-                        </span>
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                          selectedRecording.compliance === 'Yes' 
-                            ? 'bg-green-500/20 text-green-400' 
-                            : selectedRecording.compliance === 'No'
-                            ? 'bg-red-500/20 text-red-400'
-                            : 'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          Comp: {selectedRecording.compliance}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Review based on Gemini - 20/01/24 7:03 am
-                  </div>
-                </div>
-
-                {/* Scoring Criteria */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">Evaluation Criteria</h3>
-                  
-                  <div className="space-y-4">
-                    {selectedRecording.scores.map((score, index) => (
-                      <div 
-                        key={index}
-                        className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-orange-500/30 transition-all"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h4 className="text-sm font-semibold mb-1">{score.name}</h4>
-                            <p className="text-xs text-gray-400">{score.feedback}</p>
-                          </div>
-                          <button className="text-xs text-orange-400 hover:text-orange-300 ml-2">
-                            Review
-                          </button>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex gap-1">
-                            {Array.from({ length: score.outOf }).map((_, i) => (
-                              <Star
-                                key={i}
-                                size={18}
-                                className={`transition-all ${
-                                  i < (score.rating === 'N/A' ? 0 : score.rating)
-                                    ? `fill-${score.color}-400 text-${score.color}-400`
-                                    : 'text-gray-700'
-                                }`}
-                                style={{
-                                  fill: i < (score.rating === 'N/A' ? 0 : score.rating) ? 'currentColor' : 'none'
-                                }}
-                              />
-                            ))}
-                          </div>
-                          <span className={`text-sm font-bold ${
-                            score.rating === 'N/A' 
-                              ? 'text-gray-400' 
-                              : score.color === 'green' ? 'text-green-400' :
-                                score.color === 'blue' ? 'text-blue-400' :
-                                score.color === 'orange' ? 'text-orange-400' :
-                                score.color === 'purple' ? 'text-purple-400' :
-                                'text-gray-400'
-                          }`}>
-                            {score.rating === 'N/A' ? 'N/A' : `${score.rating}/${score.outOf}`}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Transcription Stats */}
-                  <div className="mt-6 pt-6 border-t border-white/10">
-                    <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">Transcription Quality</h3>
-                    
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-lg p-3 text-center border border-blue-500/20">
-                        <div className="text-2xl font-bold text-blue-400">{selectedRecording.totalWords}</div>
-                        <div className="text-xs text-gray-400 mt-1">Total Words</div>
-                      </div>
-                      <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-lg p-3 text-center border border-orange-500/20">
-                        <div className="text-2xl font-bold text-orange-400">{selectedRecording.wordsChanged}</div>
-                        <div className="text-xs text-gray-400 mt-1">Edited</div>
-                      </div>
-                      <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg p-3 text-center border border-green-500/20">
-                        <div className="text-2xl font-bold text-green-400">{selectedRecording.accuracy}</div>
-                        <div className="text-xs text-gray-400 mt-1">Accuracy</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Comments Section */}
-                  <div className="mt-6 pt-6 border-t border-white/10">
-                    <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">Add Your Review</h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-xs text-gray-400 mb-2 block">Suggest Rating *</label>
-                        <select className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                          <option>Select rating...</option>
-                          <option>⭐ 1 - Poor</option>
-                          <option>⭐⭐ 2 - Below Average</option>
-                          <option>⭐⭐⭐ 3 - Average</option>
-                          <option>⭐⭐⭐⭐ 4 - Good</option>
-                          <option>⭐⭐⭐⭐⭐ 5 - Excellent</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="text-xs text-gray-400 mb-2 block">Add Comments *</label>
-                        <textarea
-                          className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                          rows={4}
-                          placeholder="Share your feedback about this call..."
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between pt-2">
-                        <button className="text-sm text-orange-400 hover:text-orange-300 transition-colors">
-                          View all comments →
-                        </button>
-                        <button className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold">
-                          Submit Review
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="bg-white/5 rounded-lg p-3">
+                <div className="text-xs text-gray-400 mb-1">Conversion Eligible</div>
+                <span className={`inline-block px-3 py-1 rounded text-sm font-semibold ${selectedCallType.eligibleForConversion ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                  }`}>
+                  {selectedCallType.eligibleForConversion ? 'Yes' : 'No'}
+                </span>
+              </div>
+              <div className="bg-white/5 rounded-lg p-3">
+                <div className="text-xs text-gray-400 mb-1">Scoring Criteria</div>
+                <div className="text-2xl font-bold text-blue-400">{selectedCallType.scoringGuides.length}</div>
               </div>
             </div>
           </div>
+
+          {/* Call Type Details */}
+          <div className="grid grid-cols-1 gap-4">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">What to Listen For</h3>
+              <p className="text-sm text-gray-300 leading-relaxed">{selectedCallType.whatToListenFor}</p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">Conversion Definition</h3>
+              <p className="text-sm text-gray-300 leading-relaxed">{selectedCallType.conversionDefinition}</p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">Compliance Definition</h3>
+              <p className="text-sm text-gray-300 leading-relaxed">{selectedCallType.complianceDefinition}</p>
+            </div>
+          </div>
+
+          {/* Scoring Guides Section */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10 bg-gradient-to-r from-slate-800/30 to-slate-900/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Scoring Criteria</h3>
+                  <p className="text-sm text-gray-400">Define how this call type will be evaluated</p>
+                </div>
+                <button
+                  onClick={addNewScoringGuide}
+                  className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Add Scoring Criteria
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {selectedCallType.scoringGuides.map((guide, index) => (
+                <div key={guide.id} className="bg-slate-800/30 rounded-xl border border-white/10 overflow-hidden">
+                  {/* Guide Header */}
+                  <div className="p-4 border-b border-white/10 flex items-center justify-between" style={{ backgroundColor: guide.color + '10' }}>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl font-bold bg-white/10">
+                          {guide.order}
+                        </div>
+                        <div
+                          className="w-6 h-6 rounded-lg cursor-pointer hover:opacity-80 transition-opacity border-2 border-white/20"
+                          style={{ backgroundColor: guide.color }}
+                          title="Click to change color"
+                        ></div>
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          defaultValue={guide.categoryTitle}
+                          className="bg-transparent text-lg font-bold outline-none border-b-2 border-transparent hover:border-orange-500/30 focus:border-orange-500 transition-colors px-2"
+                          placeholder="Category Title"
+                        />
+                        <input
+                          type="text"
+                          defaultValue={guide.categoryDescription}
+                          className="block bg-transparent text-sm text-gray-400 outline-none border-b-2 border-transparent hover:border-orange-500/30 focus:border-orange-500 transition-colors px-2 mt-1"
+                          placeholder="Category Description"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button className="p-2 hover:bg-red-500/20 rounded-lg transition-colors">
+                        <Trash2 size={18} className="text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Scoring Levels */}
+                  <div className="p-4 space-y-3">
+                    {guide.scores.map((score, scoreIdx) => (
+                      <div key={scoreIdx} className="flex gap-4 items-start group">
+                        <div
+                          className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold shrink-0 border-2"
+                          style={{
+                            backgroundColor: guide.color + '20',
+                            borderColor: guide.color + '40',
+                            color: guide.color
+                          }}
+                        >
+                          {score.level}
+                        </div>
+                        <div className="flex-1">
+                          <textarea
+                            defaultValue={score.description}
+                            rows={2}
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 hover:bg-white/10 transition-colors"
+                            placeholder={`Description for level ${score.level}...`}
+                          />
+                        </div>
+                        <button className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 rounded-lg transition-all">
+                          <Trash2 size={16} className="text-red-400" />
+                        </button>
+                      </div>
+                    ))}
+
+                    <button className="w-full px-4 py-3 bg-white/5 border border-white/10 border-dashed rounded-lg text-sm hover:bg-white/10 transition-colors flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+                      <Plus size={16} />
+                      Add Score Level
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {selectedCallType.scoringGuides.length === 0 && (
+                <div className="text-center py-12">
+                  <Star size={48} className="mx-auto mb-4 text-gray-600" />
+                  <h4 className="text-lg font-semibold mb-2">No Scoring Criteria Yet</h4>
+                  <p className="text-sm text-gray-400 mb-4">Add scoring criteria to evaluate calls of this type</p>
+                  <button
+                    onClick={addNewScoringGuide}
+                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold inline-flex items-center gap-2"
+                  >
+                    <Plus size={18} />
+                    Add First Scoring Criteria
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Save Button */}
+            {selectedCallType.scoringGuides.length > 0 && (
+              <div className="p-6 border-t border-white/10 bg-slate-900/50 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setSelectedCallType(null)}
+                  className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg text-sm hover:shadow-lg hover:shadow-orange-500/30 transition-all font-semibold flex items-center gap-2">
+                  <Save size={16} />
+                  Save All Changes
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Other Tabs */}
+      {activeTab !== 'Call Type' && (
+        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-12 border border-white/10 text-center">
+          <h2 className="text-2xl font-bold mb-2">{activeTab}</h2>
+          <p className="text-gray-400">This section is under development</p>
         </div>
       )}
     </div>
   );
 };
 
-export default RecordingsPage;
+export default SettingsPage;

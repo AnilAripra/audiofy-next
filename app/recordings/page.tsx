@@ -7,7 +7,6 @@ import RecordingsTable from "./components/RecordingsTable";
 import RecordingModal from "./components/RecordingModal";
 
 export default function RecordingsPage() {
-  const [activeTab, setActiveTab] = useState('DS Recordings');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedRecording, setSelectedRecording] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,42 +136,6 @@ export default function RecordingsPage() {
   return (
     <DashboardLayout title="Recording History">
       <div className="space-y-4 text-slate-900 dark:text-white">
-        {/* Header */}
-        {/* <div className="mb-6">
-          <div className="flex items-center gap-4 text-sm overflow-x-auto pb-2">
-            <button
-              onClick={() => setActiveTab('DS Recordings')}
-              className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-                activeTab === 'DS Recordings'
-                  ? 'text-orange-500 dark:text-orange-400 border-b-2 border-orange-500 dark:border-orange-400 font-medium'
-                  : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              DS Recordings
-            </button>
-            <button
-              onClick={() => setActiveTab('Horizon Voice Calls')}
-              className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-                activeTab === 'Horizon Voice Calls'
-                  ? 'text-orange-500 dark:text-orange-400 border-b-2 border-orange-500 dark:border-orange-400 font-medium'
-                  : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Horizon Voice Calls
-            </button>
-            <button
-              onClick={() => setActiveTab('Failed transcriptions')}
-              className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-                activeTab === 'Failed transcriptions'
-                  ? 'text-orange-500 dark:text-orange-400 border-b-2 border-orange-500 dark:border-orange-400 font-medium'
-                  : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Failed transcriptions
-            </button>
-          </div>
-        </div> */}
-
         <RecordingsFilters
           showAdvancedFilters={showAdvancedFilters}
           setShowAdvancedFilters={setShowAdvancedFilters}
